@@ -1,0 +1,208 @@
+
+#from DateTime import DateTime
+from machine import Pin, UART, I2C
+#from ssd1306 import SSD1306_I2C
+
+# Import utime library to implement delay
+import utime, time
+
+# Oled I2C connection
+#i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
+#oled = SSD1306_I2C(128, 64, i2c)
+
+# GPS Module UART Connection
+gps_module = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
+
+buff = bytearray(255)
+
+
+
+
+#def ConvertToUnix():
+
+    #RawTime = getGPSTime().split(':')
+    #Hour = RawTime[0]
+    #Minute = RawTime[1]
+    #Second = RawTime[2]
+
+    #RawDate = getGPSDate().split('.')
+    #Day = RawDate[0]
+    #Month = RawDate[1]
+    #Year = RawDate[2]
+
+    #dateAndTime = DateTime(Year, Month, Day, Hour, Minute, Second)
+    #UnixTimestamp = int(dateAndTime.timestamp())
+    #return UnixTimestamp
+
+
+#def ConvertToUTC(EpochTime):
+
+    #timestamp = EpochTime
+    #UTCDateAndTime = DateTime.fromtimestamp(timestamp)
+    #return UTCDateAndTime
+FIX_STATUS_position = False
+TIMEOUT_position = False
+Timeout_satellites = False
+FIX_STATUS_satellites = False
+
+def getGPS(gpsModule):
+    global  latitude, longitude
+    global FIX_STATUS_position, FIX_STATUS_satellites
+    global TIMEOUT_position, Timeout_satellites
+
+    timeout = time.time() +10
+    while True:
+        gpsModule.readline()
+        buff = str(gpsModule.readline())
+        parts = buff.split(',')
+
+        if (parts[0] == "b'$GPGGA"):# and len(parts) == 15):
+            if (parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
+                print(buff)
+
+                latitude = convertToDegree(parts[2])
+                if (parts[3] == 'S'):
+                    latitude = -latitude
+                longitude = convertToDegree(parts[4])
+                if (parts[5] == 'W'):
+                    longitude = -longitude
+
+                print("funguju")
+                print("Printing GPS data...")
+                print(" ")
+                print("Latitude: " + latitude)
+                print("Longitude: " + longitude)
+                print("Satellites: " + satellites)
+                # print("Time: " + GPStimeUTC)
+                print("----------------------")
+
+                return latitude, longitude
+
+
+
+            FIX_STATUS_position = True
+            FIX_STATUS_satellites = True
+
+
+        if (time.time() > timeout):
+            TIMEOUT_position = True
+            Timeout_satellites = True
+            break
+
+
+        utime.sleep_ms(500)
+
+
+def getGPSDate(gpsModule):
+
+    global GPSDate
+    TIMEOUT_GPS_DATE = False
+    FIX_STATUS_Date = False
+    timeout = time.time() + 8
+
+
+    gpsModule.readline()
+    buff = str(gpsModule.readline())
+    parts = buff.split(',')
+
+    if (parts[0] == "b'$GPRMC" and len(parts) == 13):
+        GPSDate = parts[1][0:2] + "." + parts[1][2:4] + "." + parts[1][4:6]+"." #DDMMYY
+
+        FIX_STATUS_Date = True
+        return GPSDate
+    if (time.time() > timeout):
+        TIMEOUT_GPS_DATE = True
+
+
+
+def getGPSTimeUTC(gpsModule):
+    global GPStimeUTC
+    TIMEOUT_GPS_TIME = False
+    FIX_STATUS_GPSTime = False
+
+    timeout = time.time()+8
+
+    while True:
+        gpsModule.readline()
+        buff = str(gpsModule.readline())
+        parts = buff.split(',')
+
+        if (parts[0] == "b'$GPGGA" and len(parts) == 15):
+
+            GPStimeUTC = parts[1][0:2] + ":" + parts[1][2:4] + ":" + parts[1][4:6]
+
+            FIX_STATUS_GPSTime = True
+
+        if (time.time() > timeout):
+            TIMEOUT_GPS_TIME = True
+            break
+        return GPStimeUTC
+        #utime.sleep(1)
+
+
+
+def NumOfSatellites(gpsModule):
+
+    global satellites
+    global FIX_STATUS_satellites
+    global Timeout_satellites
+
+
+    timeout = time.time()+8
+
+    while True:
+        gpsModule.readline()
+        buff = str(gpsModule.readline())
+        parts = buff.split(',')
+
+        if (parts[0] == "b'$GPGGA" and len(parts) == 15):
+            satellites = parts[7]
+            FIX_STATUS_satellites = True
+            break
+        if (time.time() > timeout):
+            Timeout_satellites = True
+            break
+
+
+
+def convertToDegree(RawDegrees):
+    RawAsFloat = float(RawDegrees)
+    firstdigits = int(RawAsFloat / 100)
+    nexttwodigits = RawAsFloat - float(firstdigits * 100)
+
+    Converted = float(firstdigits + nexttwodigits / 60.0)
+    Converted = '{0:.6f}'.format(Converted)
+    return str(Converted)
+
+
+while True:
+
+    getGPS(gps_module)
+    NumOfSatellites(gps_module)
+    #unixtime = ConvertToUnix()
+    #print ("unix time: "+unixtime)
+    print("cekam")
+    print ("satelity:"+ satellites)
+    #time = getGPSTime()
+    #print("time: "+time)
+
+
+
+    if (FIX_STATUS_position == True): # and FIX_STATUS_satellites == True):
+        print("position true")
+
+
+
+
+        FIX_STATUS_position = False
+        #FIX_STATUS_satellites = False
+
+
+    if (TIMEOUT_position== True): # and Timeout_satellites == True):
+        print ("nefunguju")
+        print("No GPS data is found.")
+        TIMEOUT_position = False
+        #Timeout_satellites = False
+
+    utime.sleep(1)
+
