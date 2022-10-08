@@ -1,9 +1,10 @@
-#import calendar
-import utime
+import json
 from machine import Pin, UART
 #from ssd1306 import SSD1306_I2C
 
-#import utime
+#import datetime
+import requests
+import utime
 import time
 
 #i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
@@ -19,9 +20,86 @@ FIX_STATUS_GPS = False
 
 latitude = ""
 longitude = ""
+Observer_elevation = ""
 satellites = ""
 GPStime = ""
 GPSdate = ""
+MinElev = 20
+DaysAhead = 2
+SecondsPrediction = ""
+
+
+
+
+
+
+
+def GetPositionsForNextFlyby(SatID):
+    with open (SatID, 'r') as flybyfile:
+        FlybyData = json.load(flybyfile)
+
+        NumberOfFlybys = len(FlybyData['passes'])
+
+        i = 1
+        for i in NumberOfFlybys:
+            StartUnixTime = FlybyData['startUTC'][i]['passes']
+            EndUnixTime = FlybyData['endUTC'][i]['passes']
+            SecondsToPredict = EndUnixTime - StartUnixTime
+
+            HttpRequest = "https://api.n2yo.com/rest/v1/satellite/positions/" + SatID + "/" + latitude + "/" + longitude + "/" + Observer_elevation + "/" + SecondsToPredict + "/&apiKey=TLX2JG-94DFXJ-K57JEF-4XB1"
+
+            response = requests.get(HttpRequest)
+
+            FileName = SatID +"FlybyStartsAt"+StartUnixTime
+
+            SaveToTXT(FileName, response)
+
+    flybyfile.close()
+
+
+def APIRequestForFutureFlybys(SatID):
+    global MinElev, DaysAhead
+
+    HttpRequest = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + SatID +"/" + latitude +"/" + longitude +"/" + Observer_elevation + "/" + DaysAhead + "/" + MinElev + "/&apiKey=TLX2JG-94DFXJ-K57JEF-4XB1"
+
+    response = requests.get(HttpRequest)
+
+    SaveToTXT(SatID, response)
+
+
+def SaveToTXT(FileName, Text):
+
+    with open (FileName, 'r+w') as f:
+        f.truncate(0)
+        f.write(Text)
+
+    f.close()
+
+
+#def ConnetGSM()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def ConvertToUTC(EpochTime):
 
@@ -31,15 +109,15 @@ def ConvertToUTC(EpochTime):
 def SetTime():
     RaWTime = GPStime.split(':')
 
-    rtc.hour = GPStime[0]
-    rtc.minute = GPStime[1]
-    rtc.second = GPStime[2]
+    #rtc.hour = GPStime[0]
+    #rtc.minute = GPStime[1]
+    #rtc.second = GPStime[2]
 
     RaWDate = GPSdate.split('.')
 
-    rtc.day = RaWDate[0]
-    rtc.month = RaWDate[1]
-    rtc.year = RaWDate[2]
+    #rtc.day = RaWDate[0]
+    #rtc.month = RaWDate[1]
+    #rtc.year = RaWDate[2]
 
 
 def testTime():
@@ -56,27 +134,24 @@ def ConvertToUnix():
     Minute = RawCurrentTime[1]
     Second = RawCurrentTime[2]
 
-    Year = 2022
-    Day = 15
-    Month = 10
+    GPSdate = "2022.10.6"
+    RawDate = GPSdate.split('.')
+    Day = RawDate[0]
+    Month = RawDate[1]
+    Year = RawDate[2]
+
+    ToEpoch = datetime(Year, Month, Day, Hour, Minute, Second)
+
+    EpochTime = time.mktime(ToEpoch.timetuple())
 
 
-
-
-    #RawDate = GPSDate.split('.')
-    #Day = RawDate[0]
-    #Month = RawDate[1]
-    #Year = RawDate[2]
-
-
-    #EpochTime = calendar.timegm()
-
-    #print ("time since epoch: "+EpochTime)
+    print ("time since epoch: "+EpochTime)
 
 
     #dateAndTime = datetime(Year, Month, Day, Hour, Minute, Second)
     #UnixTimestamp = int(dateAndTime.timestamp())
     #return UnixTimestamp
+
 
 
 
@@ -138,7 +213,9 @@ def convertToDegree(RawDegrees):
 
 while True:
 
-    testTime()
+    #testTime()
+    ConvertToUnix()
+
     time.sleep(1)
     #getGPS(gpsModule)
 
