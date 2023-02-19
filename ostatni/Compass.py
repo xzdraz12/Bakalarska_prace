@@ -1,5 +1,5 @@
 import hmc5883l
-from hmc5883l import  HMC5883L
+
 
 class Compass():
 

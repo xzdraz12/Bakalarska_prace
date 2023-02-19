@@ -1,9 +1,17 @@
 import time
 
 class GPS():
+
+    def GPSisReady(self):
+        if FIX_STATUS_GPS == True:
+            return True
+        else:
+            return False
+
+
     def getGPS(gpsModule):
         global FIX_STATUS_GPS, FIX_STATUS_DATE, TIMEOUT_GPS, latitude, longitude, satellites, GPStime, GPSdate
-
+        FIX_STATUS_GPS=False
         timeout = time.time() + 8
         while True:
             gpsModule.readline()
@@ -25,7 +33,7 @@ class GPS():
                     satellites = parts_gps[7]
                     GPStime = parts_gps[1][0:2] + ":" + parts_gps[1][2:4] + ":" + parts_gps[1][4:6]
 
-                    FIX_STATUS_GPS = True
+                    #FIX_STATUS_GPS = True
                     break
 
             if (parts_gps[0] == "b'$GPRMC" and len(parts_gps) == 13):
@@ -33,7 +41,7 @@ class GPS():
                     6] and parts_gps[7]):
                     GPSdate = parts_date[1][0:2] + "." + parts_date[1][2:4] + "." + parts_date[1][4:6] + "."  # DDMMYY
 
-                    FIX_STATUS_DATE = True
+                    #FIX_STATUS_DATE = True
                     break
 
             if (time.time() > timeout):

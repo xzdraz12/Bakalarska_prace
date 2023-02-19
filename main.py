@@ -1,95 +1,45 @@
-import json
-from machine import Pin, UART
-import Time, GPS, Files
-
-#from ssd1306 import SSD1306_I2C
-
-#import datetime
-import requests
+import machine
 import utime
-import time
+import menu
+import settings
 
-#i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
-#oled = SSD1306_I2C(128, 64, i2c)
+def clear():
+    settings.lcd.clear()
+    
 
-gpsModule = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
-print(gpsModule)
+menu.welcome()
 
-buff = bytearray(255)
+utime.sleep(3)
 
-TIMEOUT_GPS = False
-FIX_STATUS_GPS = False
+menu.GettingGPS()
 
-latitude = ""
-longitude = ""
-Observer_elevation = ""
-satellites = ""
-GPStime = ""
-GPSdate = ""
-MinElev = 20
-DaysAhead = 2
-SecondsPrediction = ""
-
-AmateurSatellites = [25544, 51085, 42790] #ISS, VZLUSAT-2, VZLUSAT -1
+utime.sleep(3)
 
 
-
-
-
-
-
-def hi_name(name):
-
-    {
-        print ("ahoj"+name)
-    }
-
-
-
+    
 while True:
+    
 
-    myname = "jakub"
-
-    hi_name(myname)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if settings.button.value()==1:
+        clear()
+        settings.led.value(1)
+        settings.lcd.putstr("Tlacitko zmacknuto")
+        while settings.button.value()==1:
+            continue
+            
+        
+    else:
+        clear()
+        settings.led.value(0)
+        settings.lcd.putstr("Tlacitko pusteno")
+        while settings.button.value()==0:
+            continue
+        
+        
+    
 
 
 
-while True:
 
-    #testTime()
-    Time.ConvertToUnix()
 
-    time.sleep(1)
-    #getGPS(gpsModule)
 
-    #if (FIX_STATUS_GPS == True):
-        #print("Printing GPS data...")
-        #print(" ")
-        #print("Latitude: " + latitude)
-        #print("Longitude: " + longitude)
-        #print("Satellites: " + satellites)
-        #print("Time: " + GPStime)
-        #print("----------------------")
-
-        #FIX_STATUS_GPS = False
-
-    #if (TIMEOUT_GPS == True):
-        #print("No GPS data is found.")
-        #TIMEOUT_GPS = False
