@@ -3,7 +3,7 @@
 # HMC5883L Magnetometer (Digital Compass) wrapper class
 # Based on https://github.com/rm-hull/hmc5883l
 
-from pyb import I2C
+from machine import I2C
 import math
 from array import array
 

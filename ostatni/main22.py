@@ -90,3 +90,60 @@ while True:
     #if (TIMEOUT_GPS == True):
         #print("No GPS data is found.")
         #TIMEOUT_GPS = False
+
+    gpsModule = UART(0, baudrate=9600, tx=Pin(12), rx=Pin(13))
+
+
+    def getGPS(gpsModule):
+        global FIX_STATUS_GPS, TIMEOUT_GPS, latitude, longitude, satellites
+        buff = bytearray(255)
+        FIX_STATUS_GPS = False
+        TIMEOUT_GPS = False
+        timeout = time.time() + 8
+        print("hehe")
+        while True:
+            gpsModule.readline()
+            buff_gps = str(gpsModule.readline())
+            parts_gps = buff_gps.split(',')
+            print(buff_gps)
+            # parts_date = buff_gps.split(',')
+            print("tady")
+            if (parts_gps[0] == "b'$GPGGA" and len(parts_gps) == 15):
+                if (parts_gps[1] and parts_gps[2] and parts_gps[3] and parts_gps[4] and parts_gps[5] and parts_gps[
+                    6] and parts_gps[7]):
+                    print(buff_gps)
+                    print("a co tady)")
+                    latitude = convertToDegree(parts_gps[2])
+                    if (parts_gps[3] == 'S'):
+                        latitude = -latitude
+                    longitude = convertToDegree(parts_gps[4])
+                    if (parts_gps[5] == 'W'):
+                        longitude = -longitude
+                    FIX_STATUS_GPS = True
+                    break
+
+            if (time.time() > timeout):
+                TIMEOUT_GPS = True
+                break
+            time.sleep_ms(500)
+            print("tutaj")
+            while FIX_STATUS_GPS == True:
+                continue
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

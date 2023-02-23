@@ -1,45 +1,22 @@
 import machine
 import utime
+
 import menu
 import settings
+import GPS
+import _thread
 
-def clear():
-    settings.lcd.clear()
-    
 
-menu.welcome()
 
+menu.Welcome()
+menu.GPSStatus()
+#two = _thread.start_new_thread(GPS.OperateGPS(GPS.gpsModule), ())
+GPS.OperateGPS(GPS.gpsModule)
+menu.GPSStatus()
 utime.sleep(3)
-
-menu.GettingGPS()
-
-utime.sleep(3)
+settings.lcd.clear()
+GPS.GPS_info()
 
 
-    
 while True:
-    
-
-    if settings.button.value()==1:
-        clear()
-        settings.led.value(1)
-        settings.lcd.putstr("Tlacitko zmacknuto")
-        while settings.button.value()==1:
-            continue
-            
-        
-    else:
-        clear()
-        settings.led.value(0)
-        settings.lcd.putstr("Tlacitko pusteno")
-        while settings.button.value()==0:
-            continue
-        
-        
-    
-
-
-
-
-
-
+    menu.menuTest()

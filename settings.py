@@ -2,7 +2,7 @@
 #nastaveni i2c pro displej
 
 from pico_i2c_lcd import I2cLcd
-from machine import I2C
+from machine import I2C, UART, Pin
 import machine
 import settings
 from lcd_api import LcdApi
@@ -32,3 +32,8 @@ import machine
 #nastaveni testovaciho tlacitka
 led = machine.Pin(25, machine.Pin.OUT)
 button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
+
+
+
+
+

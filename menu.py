@@ -1,11 +1,13 @@
 
 import utime
+
+
 import settings
-from GPS import GPS
+import GPS
+
 #from waiting import wait
 
-def welcome():
-
+def Welcome():
     settings.lcd.putstr("Welcome")
     utime.sleep(2)
     settings.lcd.clear()
@@ -13,17 +15,44 @@ def welcome():
     utime.sleep(2)
     settings.lcd.clear()
 
-def GettingGPS():
 
-    #wait(lambda : GPS.GPSisReady(), waiting_for="Waiting for GPS signal")
-    settings.lcd.clear()
-    settings.lcd.putstr("Waiting for GPS haha")
-    settings.lcd.blink_cursor_on()
-    while GPS.GPSisReady == True: #or settings.button.value()==1:
+def GPSStatus():
+    if GPS.FIX_STATUS_GPS == False:
+        # while GPS.FIX_STATUS_GPS == False:
+
+        settings.lcd.clear()
+        settings.lcd.putstr("Waiting for GPS ")
+        print("Waiting for GPS ")
+        settings.lcd.blink_cursor_on()
+        utime.sleep(.5)
+        #break
+        # while GPS.FIX_STATUS_GPS == False:
+        # continue
+
+    # elif GPS.FIX_STATUS_GPS == True:
+    elif GPS.FIX_STATUS_GPS == True:
+        settings.lcd.clear()
         settings.lcd.putstr("GPS obtained")
-        utime.sleep(1.5)
-        continue
+        print("GPS obtained ")
+        utime.sleep(3)
 
+        #break
+
+    #while True:
+
+
+
+
+        #break
+
+
+   
+        
+
+    #else:
+        #settings.lcd.clear()
+        #settings.lcd.putstr("GPS malfunction")
+        #utime.sleep(1)
 
 def SetWifi():
 
@@ -36,8 +65,23 @@ def ScrollMenu():
 
 
 
+def menuTest():
+    if settings.button.value() == 1:
+        settings.lcd.clear()
+        settings.led.value(1)
+        settings.lcd.putstr("Tlacitko zmacknuto")
+        print("tlacitko zmacnuto")
+        while settings.button.value() == 1:
+            continue
 
-        
+
+    else:
+        settings.lcd.clear()
+        settings.led.value(0)
+        settings.lcd.putstr("Tlacitko pusteno")
+        print("tlacitko vypnuto")
+        while settings.button.value() == 0:
+            continue
 
 
 

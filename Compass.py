@@ -1,4 +1,10 @@
 import hmc5883l
+import
+
+
+sda =
+
+
 
 
 class Compass():
