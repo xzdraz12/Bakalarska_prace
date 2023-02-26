@@ -16,27 +16,8 @@ def Welcome():
     settings.lcd.clear()
 
 
-def GPSStatus():
-    if GPS.FIX_STATUS_GPS == False:
-        # while GPS.FIX_STATUS_GPS == False:
 
-        settings.lcd.clear()
-        settings.lcd.putstr("Waiting for GPS ")
-        print("Waiting for GPS ")
-        settings.lcd.blink_cursor_on()
-        utime.sleep(.5)
-        #break
-        # while GPS.FIX_STATUS_GPS == False:
-        # continue
 
-    # elif GPS.FIX_STATUS_GPS == True:
-    elif GPS.FIX_STATUS_GPS == True:
-        settings.lcd.clear()
-        settings.lcd.putstr("GPS obtained")
-        print("GPS obtained ")
-        utime.sleep(3)
-
-        #break
 
     #while True:
 
