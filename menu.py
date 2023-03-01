@@ -1,11 +1,6 @@
-
 import utime
-
-
 import settings
 import GPS
-
-#from waiting import wait
 
 def Welcome():
     settings.lcd.putstr("Welcome")
@@ -14,10 +9,6 @@ def Welcome():
     settings.lcd.putstr("Version 2023")
     utime.sleep(2)
     settings.lcd.clear()
-
-
-
-
 
     #while True:
 
@@ -43,8 +34,6 @@ def ScrollMenu():
 
     settings.lcd.clear()
     settings.lcd.putstr("WiFi")
-
-
 
 def menuTest():
     if settings.button.value() == 1:

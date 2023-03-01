@@ -2,7 +2,6 @@ import network
 import machine
 from time import sleep
 
-
 ssid = "Musli"
 password = "vodak2019"
 

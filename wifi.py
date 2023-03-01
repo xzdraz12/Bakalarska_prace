@@ -1,44 +1,61 @@
 import network
-from time import sleep
-
 import utime
-
 import settings
-import wifi
 
-global ssid, password, CONNECTED_STATUS
+global ssid, password
 ssid = "Musli"
 password = "vodak2019"
-CONNECTED_STATUS = False
+
 
 wlan = network.WLAN(network.STA_IF)
 
 def ConnectWifi():
+    wlan.active(False)
+    utime.sleep(.5)
+    wlan.active(True)
 
-    #wlan.active(False)
+    print("Connecting to wifi")
+    settings.lcd.clear()
+    settings.lcd.putstr("Connecting to WiFi")
+    settings.lcd.blink_cursor_on()
 
-    while True:
-
-        if wlan.isconnected() == False or wlan.status() == "STAT_IDLE" or wlan.status() == "STAT_CONNECT_FAIL":
-            settings.lcd.clear()
-            settings.lcd.putstr("WiFi Disconnected")
-            while wlan.isconnected() == False or wlan.status() == "STAT_IDLE" or wlan.status() == "STAT_CONNECT_FAIL":
-                wlan.active(True)
-                wlan.connect(ssid, password)
-                print("snazim se spojit")
-                utime.sleep(3)
-            utime.sleep(3)
-
-        elif wlan.status() == "STAT_GOT_IP":
-            settings.lcd.clear()
-            settings.lcd.putstr("WiFi Connected" + ssid)
-            utime.sleep(3)
-            settings.lcd.clear()
+    while not wlan.isconnected():
+        wlan.connect(ssid, password)
+        utime.sleep(5)
+        if wlan.isconnected():
             break
 
+    if wlan.isconnected():
+        settings.lcd.clear()
+        print("Connected")
+        settings.lcd.blink_cursor_off()
+        settings.lcd.clear()
+        settings.lcd.putstr("WiFi is connected")
+        utime.sleep(2)
+        settings.lcd.clear()
 
+    else:
+        print("Error, please restart the device")
+        settings.lcd.clear()
+        settings.lcd.putstr("Error, please restart the device")
 
-
-
-
-
+    # #wlan.active(False)
+    #
+    # while True:
+    #
+    #     if wlan.isconnected() == False or wlan.status() == "STAT_IDLE" or wlan.status() == "STAT_CONNECT_FAIL":
+    #         settings.lcd.clear()
+    #         settings.lcd.putstr("WiFi Disconnected")
+    #         while wlan.isconnected() == False or wlan.status() == "STAT_IDLE" or wlan.status() == "STAT_CONNECT_FAIL":
+    #             wlan.active(True)
+    #             wlan.connect(ssid, password)
+    #             print("snazim se spojit")
+    #             utime.sleep(3)
+    #         utime.sleep(3)
+    #
+    #     elif wlan.status() == "STAT_GOT_IP":
+    #         settings.lcd.clear()
+    #         settings.lcd.putstr("WiFi Connected" + ssid)
+    #         utime.sleep(3)
+    #         settings.lcd.clear()
+    #         break
