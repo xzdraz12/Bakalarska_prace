@@ -13,6 +13,7 @@ def ConnectWifi():
     wlan.active(False)
     utime.sleep(.5)
     wlan.active(True)
+    attempts = 0
 
     print("Connecting to wifi")
     settings.lcd.clear()
@@ -22,6 +23,11 @@ def ConnectWifi():
     while not wlan.isconnected():
         wlan.connect(ssid, password)
         utime.sleep(5)
+        attempts = attempts +1
+        if attempts == 5:
+            settings.lcd.clear()
+            settings.lcd.putstr("Time Out")
+            break
         if wlan.isconnected():
             break
 

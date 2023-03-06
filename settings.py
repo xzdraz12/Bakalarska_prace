@@ -20,14 +20,9 @@ Display_i2c = I2C(0, sda=machine.Pin(0), scl=machine.Pin(1), freq=400000)
 lcd = I2cLcd(Display_i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
 
 
-
-
 #nastaveni testovaciho tlacitka
 led = machine.Pin(25, machine.Pin.OUT)
 button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
-
-
-
 
 
 #nastaveni kompasu
@@ -40,13 +35,21 @@ declination=(0, 0)
 #nastaveni casu
 import ntptime
 
-timezone = "1"
+global timezone
+global DaylightSaving
+
+DaylightSaving = False
+timezone = 1
 ntpserver = "195.113.144.201"
 def GetNTPtime():
-    ntptime.settime("1","")
+    ntptime.settime()
     print(time.localtime())
     utime.sleep(10)
     print(time.localtime())
+
+
+
+
 
 
 

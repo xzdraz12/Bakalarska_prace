@@ -1,9 +1,7 @@
 import urequests
-
 #import Satellites
 import settings
 import wifi
-#
 # menu.Welcome()
 # GPS.GPSStatus()
 # GPS.OperateGPS(GPS.gpsModule)
@@ -31,7 +29,7 @@ import wifi
 
 #Compass.Calibration()
 
-#Satellites.DownloadAPI()
+
 
 # while True:
 #     #sleep(1)
@@ -41,10 +39,12 @@ import wifi
 wifi.ConnectWifi()
 settings.GetNTPtime()
 
-if wifi.wlan.isconnected():
-    req = urequests.get("https://example.com")
-    print(req.status_code)
-    print(req.text)
+#Satellites.DownloadAPI()
+
+# if wifi.wlan.isconnected():
+#     req = urequests.get("https://example.com")
+#     print(req.status_code)
+#     print(type(req))
 
 
 
