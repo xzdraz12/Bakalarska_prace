@@ -25,91 +25,44 @@ def write_json(data):
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
+    global Pass_start, Pass_end
+    Pass_start = {}
+    Pass_end = {}
+
     for satID in RadioSatellites:
         url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
-        GetPasses = urequests.get("https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude +
-                                  "/"+ longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey).text
+        GetPasses = urequests.get("https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude +"/"+ longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey).text
 
-        GetPasses_json = ujson.loads(GetPasses)
+        GetPasses_json = ujson.loads(GetPasses) # z url stringu udela json
+        x1 = GetPasses_json["info"]["satid"] # ziska satid abych ho mohl dat to vlastniho jsonu
+        x1_d = ujson.dumps(x1)
+        passecount = GetPasses_json["info"]["passescount"] #zjisti kolik preletu v budoucnu bude
 
+        helplist = [] #abych mohl iterovat pres pocet preletu
 
-        x1 = GetPasses_json["info"]["satid"]
+        for i in range (0, passecount):     #list naplnim
+            helplist.append(i)
 
-        passecount = GetPasses_json["info"]["passescount"]
+        #"StartUTCs" + x1_d = []
+        for x in helplist:
+            StartUTC = ujson.dumps(GetPasses_json["passes"][x]["startUTC"])
+            EndUTC = ujson.dumps(GetPasses_json["passes"][x]["endUTC"])
 
-        test = ujson.dumps(passecount)
+            #print(EndUTC)
+            x=str(x)
+            name = satID+"_"+x
 
-        #OneSat = GetPasses_json["passes"]
-
-        print(passecount)
-
-        # Remaded ="{"+x1+":}"
-
-        for x in test:
-            x=0
-            x2 = GetPasses_json["passes"][x]["startUTC"]
-            print(x2)
-
-            
-
+            Pass_start[name]=StartUTC
+            Pass_end[name] = EndUTC
 
 
 
-
-        # with open("satelity.json", "w") as f:
-        #     NiceFormat = ujson.dumps(GetPasses_json)
-        #
-        #
-        #     print(NiceFormat[2]["info"]["satid"])
+    Pass_start = {k: v for k, v in sorted(Pass_start.items(), key=lambda v:v[1])}
+    Pass_end = {k: v for k, v in sorted(Pass_end.items(), key=lambda v:v[1])}
 
 
-
-            # for satID in RadioSatellites:
-            #     f.write(NiceFormat)
-            # f.close()
-
-
-        utime.sleep(2)
-
-
-        # with open("satelity.json", "r") as file:
-        #      ujson.load(file)
-
-
-
-
-
-
-        #print(temp)
-
-
-        #print(pekny["info"]["satid"])
-
-
-
-        # for i < GetPasses_json["passes"].délka:
-        # #     print("\n", GetPasses_json["passes"][i]["startAz"])
-        #
-        # for Pass in GetPasses_json:
-        #     Pass = 1
-        #     print(GetPasses_json["passes"][Pass]["startAz"])
-        #     Pass += 1
-            
-        utime.sleep(2)
-
-# def EachPassData():
-#     StartTime = DownloadAPI().RawSatellites["startUTC"]
-#     EndTime = DownloadAPI().RawSatellites["endUTC"]
-#
-#     utime.sleep(1)
-#
-#     # ted stahnu data o jednotlivych preletech
-#     EachPassData = urequests.get(
-#         "https://api.n2yo.com/rest/v1/satellite/positions/" + DownloadAPI().satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/2/&apiKey=" + licenseKey).text
-#
-#     print(EachPassData)
-#
+def DownloadForDesiredPass():
 
 
 DownloadAPI()
