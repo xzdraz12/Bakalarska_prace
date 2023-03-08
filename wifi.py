@@ -45,7 +45,9 @@ def ConnectWifi():
         settings.lcd.clear()
         settings.lcd.putstr("Error, please restart the device")
 
-    # #wlan.active(False)
+
+ConnectWifi()
+   # #wlan.active(False)
     #
     # while True:
     #

@@ -1,7 +1,7 @@
 import time
 
+from machine import RTC
 import utime
-
 #nastaveni i2c pro displej
 
 from pico_i2c_lcd import I2cLcd
@@ -38,19 +38,18 @@ import ntptime
 global timezone
 global DaylightSaving
 
+
 DaylightSaving = False
-timezone = 1
+timezone = 3
 ntpserver = "195.113.144.201"
-def GetNTPtime():
+def Get_Local_NTP_time():
     ntptime.settime()
     print(time.localtime())
-    utime.sleep(10)
-    print(time.localtime())
+    print(time.time())
 
 
 
-
-
+Get_Local_NTP_time()
 
 
 
