@@ -40,17 +40,20 @@ global DaylightSaving
 
 
 DaylightSaving = False
-timezone = 3
+timezone = 1
+
+
 ntpserver = "195.113.144.201"
-def Get_Local_NTP_time():
-    ntptime.settime()
-    print(time.localtime())
-    print(time.time())
+#def Get_Local_NTP_time():
+    #print("getting time")
+    #ntptime.settime()
+    #print(time.localtime())
 
 
 
-Get_Local_NTP_time()
-
-
-
-
+#Get_Local_NTP_time()
+# print(utime.gmtime())
+# print(utime.localtime())
+#
+# print(time.localtime())
+# print(time.gmtime())
