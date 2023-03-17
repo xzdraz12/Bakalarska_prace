@@ -3,12 +3,15 @@ import settings
 import GPS
 
 def Welcome():
+    print("wifi")
     settings.lcd.putstr("Welcome")
     utime.sleep(2)
     settings.lcd.clear()
     settings.lcd.putstr("Version 2023")
     utime.sleep(2)
     settings.lcd.clear()
+
+
 
     #while True:
 

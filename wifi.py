@@ -1,7 +1,7 @@
 import network
 import utime
 import settings
-
+import sys
 global ssid, password
 ssid = "Musli"
 password = "vodak2019"
@@ -44,6 +44,12 @@ def ConnectWifi():
         print("Error, please restart the device")
         settings.lcd.clear()
         settings.lcd.putstr("Error, please restart the device")
+
+        for i in range (1, 10):
+            settings.lcd.clear()
+            settings.lcd.putstr(i)
+        sys.exit()
+
 
 
 ConnectWifi()

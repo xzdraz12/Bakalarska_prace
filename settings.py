@@ -44,14 +44,14 @@ timezone = 1
 
 
 ntpserver = "195.113.144.201"
-#def Get_Local_NTP_time():
+def Get_Local_NTP_time():
     #print("getting time")
-    #ntptime.settime()
+    ntptime.settime()
     #print(time.localtime())
 
 
 
-#Get_Local_NTP_time()
+Get_Local_NTP_time()
 # print(utime.gmtime())
 # print(utime.localtime())
 #

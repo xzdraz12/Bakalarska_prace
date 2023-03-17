@@ -1,8 +1,10 @@
 import math
-import machine
+
 import utime
 from ustruct import pack
 from array import array
+
+import GPS
 import settings
 
 __gain__ = {
@@ -28,7 +30,7 @@ def Calibration():
     settings.lcd.putstr("Provedte kalibraci kompasu")
     utime.sleep(1)
     settings.lcd.clear()
-    settings.lcd.putstr("jeho otacenim kolem")
+    settings.lcd.putstr("jeho otacenim 360°")
     utime.sleep(1)
     settings.lcd.clear()
     settings.lcd.putstr("pote stiskni tlacitko")
@@ -101,8 +103,11 @@ def InitializeCompass():
 def read():
     data = ""
     gain = ""
+
+
     buff = bytearray(255)
-    buff = str(settings.buzola.readfrom_mem_into(0x1e, 0x03, data))
+    buff = str(settings.buzola.readline())
+    #buff = str(settings.buzola.readfrom_mem_into(0x1e, 0x03, data))
     #settings.buzola.readfrom_mem_into(0x1e, 0x03, data)
 
     x = (buff[0] << 8) | buff[1]
@@ -158,9 +163,9 @@ def GetCompassApi():
 
     params = dict(
         altitude=10,  # [km]
-        longitude=100,  # [deg]
-        latitude=80,
-        year=2020.5  # decimal year, half-way through 2020
+        longitude=GPS.longitude,  # [deg]
+        latitude=GPS.latitude,
+        year=utime.gmtime()[0]+utime.gmtime()[1]/12  # decimal year, half-way through 2020
     )
 
     try:
