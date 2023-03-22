@@ -8,7 +8,7 @@ from pico_i2c_lcd import I2cLcd
 from machine import I2C, UART, Pin
 import machine
 
-
+#
 #nastaveni displeje
 global I2C_ADDR,I2C_NUM_ROWS,I2C_NUM_COLS,lcd
 
@@ -25,35 +25,26 @@ led = machine.Pin(25, machine.Pin.OUT)
 button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
 
 
-#nastaveni kompasu
-global buzola,declination
-buzola = machine.I2C(1, scl=machine.Pin(3), sda=machine.Pin(2), freq=15000)
-gauss='1.9'
-declination=(0, 0)
+# # # #nastaveni kompasu
+# from Compass import HMC5883L
+# global buzola,declination
+# #buzola = machine.I2C(1, scl=machine.Pin(3), sda=machine.Pin(2), freq=15000)
+# buzola = HMC5883L(scl=3, sda=2)
+# gauss='1.9'
+# declination=(0, 0)
 
 
 #nastaveni casu
-import ntptime
-
 global timezone
 global DaylightSaving
 
-
-DaylightSaving = False
+DaylightSaving = 1 #  pro letni cas, 0 pro zimni
 timezone = 1
 
 
-ntpserver = "195.113.144.201"
-def Get_Local_NTP_time():
-    #print("getting time")
-    ntptime.settime()
-    #print(time.localtime())
 
 
 
-Get_Local_NTP_time()
-# print(utime.gmtime())
-# print(utime.localtime())
-#
-# print(time.localtime())
-# print(time.gmtime())
+
+
+
