@@ -30,7 +30,7 @@ filename = "satelity.json"
 # filename = "satelity.json"
 
 
-RadioSatellites =["49402"]#,"53385"]#["43678","53385","25544", "53462", "51085", "49396",
+RadioSatellites =["24827"]#, "53385","43678","53385","25544","51085", "49396"]
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
@@ -99,13 +99,11 @@ def DownloadForDesiredPass():
 
 
     PassDuration = End - Begin
-    #print(PassDuration)
 
     PassDuration = str(PassDuration)
 
     while True:
         CurrentTimeInMyTimezone = utime.time() + (settings.DaylightSaving + settings.timezone) * 3600
-
 
         TimeToPass = Begin - CurrentTimeInMyTimezone
         Hours_float = TimeToPass / 3600
@@ -131,10 +129,11 @@ def DownloadForDesiredPass():
 
 
         settings.lcd.clear()
-        settings.lcd.putstr(CurrentSatId+"in:     ")
+        settings.lcd.putstr(CurrentSatName+"in:     ")
         settings.lcd.putstr(Hours + ":" + Minutes_OK + ":" + Seconds_OK)
         #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
+
 
         if TimeToPass <= 5:
             while True:
@@ -155,7 +154,7 @@ def DownloadForDesiredPass():
                     ListOfPositions.append(PositionTuple)
 
 
-                if CurrentTimeInMyTimezone >= ListOfPositions[0][0]: #bylo tam utime.time
+                if CurrentTimeInMyTimezone >= ListOfPositions[0][0]:
 
                     for i in range (0, len(ListOfPositions)):
                         print(ListOfPositions[i][2])
@@ -166,14 +165,23 @@ def DownloadForDesiredPass():
 
                         PastElev = str(ListOfPositions[i-1][2])
                         CurElev = str(ListOfPositions[i][2])
+                        TurnElev = abs(float(PastElev)-float(CurElev))
                         settings.lcd.putstr("az: " + CurAzimuth + "        el: " + CurElev)
 
-                        if PastAzimuth < CurAzimuth:
-                            Motors.move_stepper(TurnAzimuth, "anticlockwise")
-                        elif PastAzimuth > CurAzimuth:
-                            Motors.move_stepper(TurnAzimuth, "clockwise")
+                        if PastAzimuth > CurAzimuth and i>0:
+                            #Motors.move_stepper(TunAzimuth, "counterclockwise", "azimuth")
+                            print("tocim proti")
+                        elif PastAzimuth < CurAzimuth and i > 0:
+                            #Motors.move_stepper(TurnAzimuth, "clockwise", "azimuth")
+                            print("tocim po")
 
+                        if PastElev > CurElev  and i>0:
+                            Motors.move_stepper(TurnElev, "clockwise", "elevation")
+                        elif PastElev < CurElev and i>0:
+                            Motors.move_stepper(TurnElev, "counterclockwise", "elevation")
 
+                        else:
+                            continue
 
 
                         if ListOfPositions[i][2] < 0:
@@ -182,8 +190,13 @@ def DownloadForDesiredPass():
                             Pass_start.pop(0)
                             #Pass_end.pop(RawID)
                             #CurrentSatName.pop(RawID)
+                            settings.lcd.clear()
+                            settings.lcd.putstr("Pass is over")
                             print("Pass is over")
+                            Motors.DeactivateStepper("elevation")
+                            utime.sleep(3)
                             return
+
 
                         utime.sleep(1)
 

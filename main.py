@@ -1,3 +1,4 @@
+import machine
 import urequests
 import Satellites
 import menu
@@ -6,6 +7,7 @@ import wifi
 from GPS import RawGPS
 import GPS
 import utime
+import ntptime
 
 #
 #
@@ -18,26 +20,24 @@ import utime
 # GPS.GPS_info()
 #
 #
-
-
+machine.freq(240000000)
 menu.Welcome()
-
 wifi.ConnectWifi()
-settings.Get_Local_NTP_time()
+ntptime.settime()
 
 settings.lcd.clear()
 #settings.lcd.putstr("UTC time: "+str(utime.localtime()[0])+)
 #print(RawGPS().GPSaltitude)
-GPS.GPSStatus()
-GPS.OperateGPS(GPS.gpsModule)
-GPS.GPSStatus()
-
-GPS.GPS_info()
-
+# GPS.GPSStatus()
+# GPS.OperateGPS(GPS.gpsModule)
+# GPS.GPSStatus()
+#
+# GPS.GPS_info()
+Satellites.DownloadAPI()
 while True:
 
-    Satellites.DownloadAPI()
-    Satellites.DownloadForDesiredPass()
+
+    Satellites.DownloadForDesiredPass_loop()
 
 
 

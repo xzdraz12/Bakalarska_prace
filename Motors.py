@@ -3,13 +3,14 @@ import utime
 
 steps_per_revolution = 512
 
-pins = [
+pins_elevation = [
     Pin(21, Pin.OUT),
     Pin(20, Pin.OUT),
     Pin(19, Pin.OUT),
     Pin(18, Pin.OUT)
 ]
 
+pins_azim = ""
 
 full_step_forward = [
     [1,0,0,0],
@@ -43,11 +44,14 @@ quarter_step_backward = [
 
 
 
-def move_stepper(angle, direction):
+def move_stepper(angle, direction, type):
     steps_to_one_degree = steps_per_revolution/360
-    print(steps_to_one_degree)
-    steps = int(angle*steps_to_one_degree)
-    print(steps)
+    steps = angle*steps_to_one_degree
+    if type == "azimuth":
+        pins = pins_azim
+
+    elif type == "elevation":
+        pins = pins_elevation
 
     if direction == "clockwise":
         for x in range(steps):
@@ -56,7 +60,7 @@ def move_stepper(angle, direction):
                     pins[i].value(step[i])
                     utime.sleep(0.001)
                     x = x + 1
-    if direction == "anticlockwise":
+    elif direction == "counterclockwise":
         for x in range(steps):
             for step in full_step_backward:
                 for i in range(len(pins)):
@@ -65,4 +69,41 @@ def move_stepper(angle, direction):
                     x = x + 1
 
 
+def move_stepper_fast(angle, direction, type):
+    steps_to_one_degree = steps_per_revolution / 360
+    steps = angle * steps_to_one_degree
+    if type == "azimuth":
+        pins = pins_azim
 
+    elif type == "elevation":
+        pins = pins_elevation
+
+    if direction == "clockwise":
+        for x in range(steps):
+            for step in full_step_forward:
+                for i in range(len(pins)):
+                    pins[i].value(step[i])
+                    utime.sleep(0.001)
+                    x = x + 1
+    elif direction == "counterclockwise":
+        for x in range(steps):
+            for step in full_step_backward:
+                for i in range(len(pins)):
+                    pins[i].value(step[i])
+                    utime.sleep(0.001)
+                    x = x + 1
+
+
+def DeactivateStepper(type):
+    if type == "azimuth":
+        pins = pins_azim
+    elif type == "elevation":
+        pins = pins_elevation
+
+    for i in range(len(pins)):
+        pins[i].value(0)
+
+
+
+move_stepper(360, "clockwise", "elevation")
+DeactivateStepper("elevation")
