@@ -6,6 +6,7 @@ import urequests
 
 import ntptime
 import GPS
+import Motors
 import settings
 
 
@@ -29,7 +30,7 @@ filename = "satelity.json"
 # filename = "satelity.json"
 
 
-RadioSatellites =["36122"]#,"53385"]#["43678","53385","25544", "53462", "51085", "49396",
+RadioSatellites =["49402"]#,"53385"]#["43678","53385","25544", "53462", "51085", "49396",
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
@@ -68,7 +69,12 @@ def DownloadAPI():
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
 
-    print("satlit leti v" +str(Pass_start))
+    #print("satlit leti v" +str(Pass_start))
+    #print(Pass_end)
+
+
+
+
 
 
 def DownloadForDesiredPass():
@@ -82,8 +88,8 @@ def DownloadForDesiredPass():
     UNIX_start = Pass_start[0][1] #toto taky
     UNIX_end = Pass_end[RawID]
 
-    print(UNIX_start)
-    print(UNIX_end)
+    # print(UNIX_start)
+    # print(UNIX_end)
 
     Begin = int(UNIX_start)
     Begin = Begin + (settings.DaylightSaving + settings.timezone) *3600
@@ -93,7 +99,7 @@ def DownloadForDesiredPass():
 
 
     PassDuration = End - Begin
-    print(PassDuration)
+    #print(PassDuration)
 
     PassDuration = str(PassDuration)
 
@@ -123,20 +129,14 @@ def DownloadForDesiredPass():
             settings.lcd.putstr("use settings to adjust the timezone")
             break
 
-        # if CurrentTimeInMyTimezone:
-        #     Pass_start.pop(1)
-        #     Pass_end.pop[DownloadForDesiredPass.RawID]
-        #     CurrentSatName.pop(RawID)
-        #     print("prelet uz zacal")
-        #     break
 
         settings.lcd.clear()
         settings.lcd.putstr(CurrentSatId+"in:     ")
         settings.lcd.putstr(Hours + ":" + Minutes_OK + ":" + Seconds_OK)
-        settings.lcd.putstr("for: "+PassDuration)
+        #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
 
-        if TimeToPass <= 15:
+        if TimeToPass <= 5:
             while True:
                 url = "https://api.n2yo.com/rest/v1/satellite/positions/" + CurrentSatId + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + "35" + "/&apiKey=" + licenseKey
                 GetPositions = urequests.get(url)
@@ -160,28 +160,45 @@ def DownloadForDesiredPass():
                     for i in range (0, len(ListOfPositions)):
                         print(ListOfPositions[i][2])
                         settings.lcd.clear()
+                        PastAzimuth = str(ListOfPositions[i-1][1])
                         CurAzimuth = str(ListOfPositions[i][1])
+                        TurnAzimuth = abs(float(PastAzimuth)-float(CurAzimuth))
+
+                        PastElev = str(ListOfPositions[i-1][2])
                         CurElev = str(ListOfPositions[i][2])
                         settings.lcd.putstr("az: " + CurAzimuth + "        el: " + CurElev)
-            
+
+                        if PastAzimuth < CurAzimuth:
+                            Motors.move_stepper(TurnAzimuth, "anticlockwise")
+                        elif PastAzimuth > CurAzimuth:
+                            Motors.move_stepper(TurnAzimuth, "clockwise")
+
+
+
+
+                        if ListOfPositions[i][2] < 0:
+
+                            #PositionInList = PositionInList +1s
+                            Pass_start.pop(0)
+                            #Pass_end.pop(RawID)
+                            #CurrentSatName.pop(RawID)
+                            print("Pass is over")
+                            return
+
                         utime.sleep(1)
-                  
-
-                if CurrentTimeInMyTimezone==End:
-                    Pass_start.pop(1)
-                    Pass_end.pop[DownloadForDesiredPass.RawID]
-                    CurrentSatName.pop(RawID)
-                    break
 
 
+
+def DownloadForDesiredPass_loop():
+    while True:
+        DownloadForDesiredPass()
 
 
 
 machine.freq(240000000)
 
 ntptime.settime()
+DownloadAPI()
 while True:
-
-    DownloadAPI()
-    DownloadForDesiredPass()
+    DownloadForDesiredPass_loop()
 
