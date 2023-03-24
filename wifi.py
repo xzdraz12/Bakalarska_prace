@@ -52,4 +52,4 @@ def ConnectWifi():
 
 
 
-#ConnectWifi()
+ConnectWifi()

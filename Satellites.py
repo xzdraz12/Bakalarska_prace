@@ -46,7 +46,8 @@ def DownloadAPI():
     for satID in RadioSatellites:
         url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
-        GetPasses = urequests.get("https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude +"/"+ longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey)
+        #GetPasses = urequests.get("https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude +"/"+ longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey)
+        GetPasses = urequests.get(url)
 
         GetPasses_json = GetPasses.json()
 
@@ -69,14 +70,6 @@ def DownloadAPI():
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
 
-    #print("satlit leti v" +str(Pass_start))
-    #print(Pass_end)
-
-
-
-
-
-
 def DownloadForDesiredPass():
     global CurrentSatId, CurrentSatName
 
@@ -85,7 +78,7 @@ def DownloadForDesiredPass():
     CurrentSatId = parts[0]
     CurrentSatName = str(Satname[RawID])
 
-    UNIX_start = Pass_start[0][1] #toto taky
+    UNIX_start = Pass_start[0][1]
     UNIX_end = Pass_end[RawID]
 
     # print(UNIX_start)
