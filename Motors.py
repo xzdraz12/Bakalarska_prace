@@ -5,7 +5,7 @@ import menu
 import settings
 
 steps_per_revolution = 512
-
+global pins_elevation, pins_azim, full_step_forward, full_step_backward
 pins_elevation = [
     Pin(21, Pin.OUT),
     Pin(20, Pin.OUT),
@@ -13,7 +13,12 @@ pins_elevation = [
     Pin(18, Pin.OUT)
 ]
 
-pins_azim = ""
+pins_azim = [
+    Pin(28, Pin.OUT),
+    Pin(27, Pin.OUT),
+    Pin(26, Pin.OUT),
+    Pin(22, Pin.OUT)
+]
 
 full_step_forward = [
     [1,0,0,0],
