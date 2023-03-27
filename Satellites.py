@@ -5,7 +5,7 @@ import math
 import urequests
 
 import ntptime
-import GPS
+#import GPS
 import Motors
 import settings
 
@@ -30,13 +30,14 @@ filename = "satelity.json"
 # filename = "satelity.json"
 
 
-RadioSatellites =["24827"]#, "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites =["44881"]#, "53385","43678","53385","25544","51085", "49396"]
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
-    global Pass_start, Pass_end, Satname
+    global Pass_start, Pass_end, Satname, Pass_azimuth
     Pass_start = {}
     Pass_end = {}
+    Pass_azimuth = {}
     Satname = {}
 
     settings.lcd.clear()
@@ -57,18 +58,21 @@ def DownloadAPI():
 
             StartUTC = ujson.dumps(JsonValue["startUTC"])
             EndUTC = ujson.dumps(JsonValue["endUTC"])
+            StartAzimuth = ujson.dumps(JsonValue["startAz"])
 
             JsonValue = str(JsonValue)
             nickname = satID+"_"+JsonValue
 
             Pass_start[nickname]= int(StartUTC)
             Pass_end[nickname] = int(EndUTC)
+            Pass_azimuth[nickname]=float(StartAzimuth)
             Satname[nickname] = str(SatName)
             
 
 
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
+    #print(Pass_start)
 
 def DownloadForDesiredPass():
     global CurrentSatId, CurrentSatName
@@ -81,8 +85,9 @@ def DownloadForDesiredPass():
     UNIX_start = Pass_start[0][1]
     UNIX_end = Pass_end[RawID]
 
-    # print(UNIX_start)
-    # print(UNIX_end)
+    StartAZ = Pass_azimuth[RawID]
+
+    print(StartAZ)
 
     Begin = int(UNIX_start)
     Begin = Begin + (settings.DaylightSaving + settings.timezone) *3600
@@ -127,6 +132,10 @@ def DownloadForDesiredPass():
         #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
 
+        # if TimeToPass <= 50:
+        #     Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
+        #
+
 
         if TimeToPass <= 5:
             while True:
@@ -161,12 +170,16 @@ def DownloadForDesiredPass():
                         TurnElev = abs(float(PastElev)-float(CurElev))
                         settings.lcd.putstr("az: " + CurAzimuth + "        el: " + CurElev)
 
+
                         if PastAzimuth > CurAzimuth and i>0:
                             #Motors.move_stepper(TunAzimuth, "counterclockwise", "azimuth")
+                            Motors.rotate_azimuth_slew(TurnAzimuth, "ccw", 8)
                             print("tocim proti")
                         elif PastAzimuth < CurAzimuth and i > 0:
                             #Motors.move_stepper(TurnAzimuth, "clockwise", "azimuth")
+                            Motors.rotate_azimuth_slew(TurnAzimuth, "cw", 8)
                             print("tocim po")
+
 
                         if PastElev > CurElev  and i>0:
                             Motors.move_stepper(TurnElev, "clockwise", "elevation")

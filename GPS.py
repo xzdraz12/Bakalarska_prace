@@ -4,7 +4,7 @@ import utime, time
 import settings
 
 
-gpsModule = UART(0, baudrate=9600, tx=Pin(12), rx=Pin(13))
+gpsModule = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
 
 buff = bytearray(255)
 
