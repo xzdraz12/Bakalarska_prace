@@ -1,5 +1,8 @@
 import machine
 import urequests
+
+from Compass import  HMC5883L
+import CompassCalibration
 import Satellites
 import menu
 import settings
@@ -21,23 +24,32 @@ import ntptime
 #
 #
 machine.freq(240000000)
-menu.Welcome()
-wifi.ConnectWifi()
-ntptime.settime()
-
-settings.lcd.clear()
-#settings.lcd.putstr("UTC time: "+str(utime.localtime()[0])+)
-#print(RawGPS().GPSaltitude)
-# GPS.GPSStatus()
-# GPS.OperateGPS(GPS.gpsModule)
-# GPS.GPSStatus()
+# menu.Welcome()
+# wifi.ConnectWifi()
+# ntptime.settime()
 #
-# GPS.GPS_info()
-Satellites.DownloadAPI()
+# settings.lcd.clear()
+# #settings.lcd.putstr("UTC time: "+str(utime.localtime()[0])+)
+# #print(RawGPS().GPSaltitude)
+# # GPS.GPSStatus()
+# # GPS.OperateGPS(GPS.gpsModule)
+# # GPS.GPSStatus()
+# #
+# # GPS.GPS_info()
+# Satellites.DownloadAPI()
+# while True:
+#
+#
+#     Satellites.DownloadForDesiredPass_loop()
+
+CompassCalibration.GetCompassApi()
+CompassCalibration.Calibrate()
+sensor = HMC5883L()
+
 while True:
-
-
-    Satellites.DownloadForDesiredPass_loop()
+    utime.sleep(1)
+    x, y, z = sensor.read()
+    print(sensor.format_result(x, y, z))
 
 
 

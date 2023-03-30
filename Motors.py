@@ -55,14 +55,13 @@ def rotate_azimuth_slew(angle, direction, microstep):
 
 
 def rotate_azimuth_change_speed(angle, direction, microstep):
+    delay_max = 0.009
+    delay_min = 0.001
+
 
     if angle <= 180:
-        num_of_steps = ((angle / 2) / (360 / 200)) * microstep
-
-        delay_max = 0.007
-        delay_min = 0.001
-
-
+        #num_of_steps = ((angle / 2) / (360 / 200)) * microstep
+        num_of_steps = ((angle / (360 / 200)) * microstep)/2
         speedup = (delay_max - delay_min) / (num_of_steps)
         if direction == "cw":
             settings.dir_az.value(0)
@@ -99,10 +98,6 @@ def rotate_azimuth_change_speed(angle, direction, microstep):
 
         part_full = num_of_steps-((180/(360/200))*microstep) #plna rychlost, odcitam 180 protoze z obou stran 90
         parts_change = (num_of_steps-part_full)/2
-
-
-        delay_max = 0.007
-        delay_min = 0.001
 
         speedup = (delay_max - delay_min) / (parts_change)
         print(speedup)
@@ -268,6 +263,6 @@ def DeactivateStepper(type):
 
 #def CalibrateAzimuth():
 
-#rotate_azimuth_change_speed(720, "cw", 8)
+#rotate_azimuth_change_speed(180, "cw", 8)
 
 #CalibrateElevation()

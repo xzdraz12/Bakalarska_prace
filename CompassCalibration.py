@@ -1,25 +1,22 @@
-from machine import I2C
-
-import settings
-from Compass import HMC5883L
-
-
-import utime
-import Motors
 import ujson
 import urequests
+import utime
+import machine
 
+global xs, ys, xb, yb
+xs = ""
+ys = ""
+xb = ""
+yb = ""
 
-global Xmin, Xmax, Ymin, Ymax
 
 def Calibrate():
-    sensor = HMC5883L()
-
+    sensor = Compass.HMC5883L()
     Xmin = 1000
     Xmax = -1000
     Ymin = 1000
     Ymax = -1000
-    
+
     steps = 0
     num_of_steps = (720 / (360 / 200)) * 8
 
@@ -66,87 +63,56 @@ def Calibrate():
         Ymin = min(y, Ymin)
         Ymax = max(y, Ymax)
 
-    # utime.sleep(0.2)
-
     xs = 1
     ys = (Xmax - Xmin) / (Ymax - Ymin)
     xb = xs * (1 / 2 * (Xmax - Xmin) - Xmax)
     yb = xs * (1 / 2 * (Ymax - Ymin) - Ymax)
-    print("Calibration corrections:")
-    print("xs=" + str(xs))
-    print("xb=" + str(xb))
-    print("ys=" + str(ys))
-    print("yb=" + str(yb))
+    #
+    # print("Calibration corrections:")
+    # print("xs=" + str(xs))
+    # print("xb=" + str(xb))
+    # print("ys=" + str(ys))
+    # print("yb=" + str(yb))
+    #
+    # print(sensor.format_result(x, y, z))
+    # print("Xmin=" + str(Xmin) + "; Xmax=" + str(Xmax) + "; Ymin=" + str(Ymin) + "; Ymax=" + str(Ymax))
 
+
+def GetCompassApi():
+
+
+    altitude = "10"
+    longitude = "49.3125"
+    latitude = "17.3750"
+    year = str(utime.gmtime()[0]+utime.gmtime()[1]/12)
+
+    headers = {"API-Key": "VNFndFbOqgZ180EAPErDyCG5YQPBf3fY"}
+
+    hostname = "https://geomag.amentum.io/wmm/magnetic_field?altitude="+altitude+"&longitude="+longitude+"&latitude="+longitude+"&year="+year
+
+
+    response = urequests.request(method = "GET", url = hostname, data=None, json = None, headers=headers).text
+    #print(response)
+    json_payload = ujson.loads(response)
+
+    declination = float(ujson.dumps(json_payload["declination"]["value"]))
+    #print(declination)
+    inclination = float(ujson.dumps(json_payload["inclination"]["value"]))
+    #print(inclination)
+
+
+
+
+machine.freq(240000000)
+GetCompassApi()
+
+sensor = Compass.HMC5883L()
+
+while True:
+    utime.sleep(1)
+    x, y, z = sensor.read()
     print(sensor.format_result(x, y, z))
-    print("Xmin=" + str(Xmin) + "; Xmax=" + str(Xmax) + "; Ymin=" + str(Ymin) + "; Ymax=" + str(Ymax))
 
-Calibrate()
-
+#Calibrate()
 
 
-# def MyGetCompassApi():
-#     headers = {"API-Key": "<VNFndFbOqgZ180EAPErDyCG5YQPBf3fY>"}
-#
-#     # longitude = "49.3125"  # [deg]
-#     # latitude= "17.3750"
-#     # altitude = "0"
-#
-#     # url = "https://geomag.amentum.io/wmm/magnetic_field"
-#
-#     # params = dict(
-#     #     altitude=0,  # [km]
-#     #     longitude=49.3125,  # [deg]
-#     #     latitude=17.3750,
-#     #     year=utime.gmtime()[0] + utime.gmtime()[1] / 12  # decimal year, half-way through 2020
-#     # )
-#
-#     params = {
-#         altitude=0,  # [km]
-#         longitude=49.3125,  # [deg]
-#         latitude=17.3750,
-#         year=utime.gmtime()[0] + utime.gmtime()[1] / 12 # decimal year, half-way through 2020
-#     }
-#
-#     year = str(utime.gmtime()[0] + utime.gmtime()[1] / 12)
-#
-#     # url = "https://geomag.amentum.io/wmm/magnetic_field?altitude=" + altitude + "&latitude="+latitude+"&longitude="+longitude+"&year="+year
-#     # print(url)
-#     url = "https://geomag.amentum.io/wmm/magnetic_field"
-#     GetDeclination = urequests.get(url=url, data=params, json=None, headers=headers)
-#
-#     GetDeclination_json = GetDeclination.json()
-#
-#     print(GetDeclination_json)
-
-
-# def GetCompassApi():
-#
-#     headers = {"API-Key": "<VNFndFbOqgZ180EAPErDyCG5YQPBf3fY>"}
-#
-#     hostname = "https://geomag.amentum.io/wmm/magnetic_field"
-#
-#     params = dict(
-#         altitude=10,  # [km]
-#         longitude=GPS.longitude,  # [deg]
-#         latitude=GPS.latitude,
-#         year=utime.gmtime()[0]+utime.gmtime()[1]/12  # decimal year, half-way through 2020
-#     )
-#
-#     try:
-#         response = urequests.get(hostname, params=params, headers=headers)
-#         json_payload = response.json()
-#         response.raise_for_status()
-#     except urequests.exceptions.ConnectionError as e:
-#         print(e)
-#
-#     except urequests.exceptions.HTTPError as e:
-#         print(e, json_payload['error'])
-#
-#     except urequests.exceptions.RequestException as e:
-#         print(e, json_payload['error'])
-#
-#     else:
-#         json_payload = response.json()
-#         print(ujson.dumps(json_payload, indent=4, sort_keys=True))
-#

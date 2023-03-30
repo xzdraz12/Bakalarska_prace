@@ -30,7 +30,7 @@ filename = "satelity.json"
 # filename = "satelity.json"
 
 
-RadioSatellites =["39136"]#, "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites =["14781"]#, "53385","43678","53385","25544","51085", "49396"]
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
@@ -128,17 +128,17 @@ def DownloadForDesiredPass():
 
 
         settings.lcd.clear()
-        settings.lcd.putstr(CurrentSatName+"in:     ")
+        settings.lcd.putstr(CurrentSatId+"in:     ")
         settings.lcd.putstr(Hours + ":" + Minutes_OK + ":" + Seconds_OK)
         #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
 
         if SlewOnlyOnce == True and TimeToPass <=50:
-            Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
-
             settings.lcd.clear()
             settings.lcd.putstr("Slewing into start position")
-            utime.sleep(3)
+
+            Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
+            
             settings.lcd.clear()
 
             SlewOnlyOnce = False
@@ -178,11 +178,10 @@ def DownloadForDesiredPass():
 
 
                         if PastAzimuth > CurAzimuth and i>0:
-                            #Motors.move_stepper(TunAzimuth, "counterclockwise", "azimuth")
                             Motors.rotate_azimuth_slew(TurnAzimuth, "ccw", 8)
                             print("tocim proti")
+                            
                         elif PastAzimuth < CurAzimuth and i > 0:
-                            #Motors.move_stepper(TurnAzimuth, "clockwise", "azimuth")
                             Motors.rotate_azimuth_slew(TurnAzimuth, "cw", 8)
                             print("tocim po")
 
