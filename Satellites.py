@@ -30,7 +30,7 @@ filename = "satelity.json"
 # filename = "satelity.json"
 
 
-RadioSatellites =["44881"]#, "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites =["39136"]#, "53385","43678","53385","25544","51085", "49396"]
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
@@ -100,6 +100,7 @@ def DownloadForDesiredPass():
 
     PassDuration = str(PassDuration)
 
+    SlewOnlyOnce = True
     while True:
         CurrentTimeInMyTimezone = utime.time() + (settings.DaylightSaving + settings.timezone) * 3600
 
@@ -132,10 +133,15 @@ def DownloadForDesiredPass():
         #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
 
-        # if TimeToPass <= 50:
-        #     Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
-        #
+        if SlewOnlyOnce == True and TimeToPass <=50:
+            Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
 
+            settings.lcd.clear()
+            settings.lcd.putstr("Slewing into start position")
+            utime.sleep(3)
+            settings.lcd.clear()
+
+            SlewOnlyOnce = False
 
         if TimeToPass <= 5:
             while True:

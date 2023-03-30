@@ -25,7 +25,7 @@ led = machine.Pin(25, machine.Pin.OUT)
 button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
 
 
-# # # #nastaveni kompasu
+# # #nastaveni kompasu
 # from Compass import HMC5883L
 # global buzola,declination
 # #buzola = machine.I2C(1, scl=machine.Pin(3), sda=machine.Pin(2), freq=15000)
@@ -42,7 +42,11 @@ DaylightSaving = 1 #  pro letni cas, 0 pro zimni
 timezone = 1
 
 
-
+#krokove motory
+#azimut
+steps_per_revolution_azim = 200
+step_az = Pin(28, Pin.OUT)
+dir_az = Pin(27, Pin.OUT)
 
 
 

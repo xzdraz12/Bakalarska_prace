@@ -18,8 +18,8 @@ class HMC5883L:
         '8.1':  (7 << 5, 4.35)
     }
 
-    def __init__(self, scl=5, sda=4, gauss='1.3', declination=(0, 0)):
-        self.i2c = i2c = machine.I2C(0,scl=machine.Pin(scl), sda=machine.Pin(sda), freq=100000)
+    def __init__(self, scl=3, sda=2, gauss='1.3', declination=(0, 0)):
+        self.i2c = i2c = machine.I2C(1,scl=machine.Pin(scl), sda=machine.Pin(sda), freq=100000)
 
         # Initialize sensor.
         #i2c.start()
@@ -36,7 +36,7 @@ class HMC5883L:
 
         # Set mode register to continuous mode.
         i2c.writeto_mem(30, 0x02, pack('B', 0x00))
-        i2c.stop()
+        #i2c.stop()
 
         # Convert declination (tuple of degrees and minutes) to radians.
         self.declination = (declination[0] + declination[1] / 60) * math.pi / 180
