@@ -2,12 +2,19 @@ import ujson
 import urequests
 import utime
 import machine
+import Compass
+import settings
 
 global xs, ys, xb, yb
 xs = ""
 ys = ""
 xb = ""
 yb = ""
+
+
+def ReadCompassforCalib():
+
+    read = machine.I2C(scl=3,sda=2)
 
 
 def Calibrate():
@@ -103,15 +110,15 @@ def GetCompassApi():
 
 
 
-machine.freq(240000000)
-GetCompassApi()
-
-sensor = Compass.HMC5883L()
-
-while True:
-    utime.sleep(1)
-    x, y, z = sensor.read()
-    print(sensor.format_result(x, y, z))
+# machine.freq(240000000)
+# GetCompassApi()
+#
+# sensor = Compass.HMC5883L()
+#
+# while True:
+#     utime.sleep(1)
+#     x, y, z = sensor.read()
+#     print(sensor.format_result(x, y, z))
 
 #Calibrate()
 

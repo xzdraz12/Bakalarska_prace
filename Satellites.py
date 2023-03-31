@@ -17,7 +17,7 @@ ObserverAltitude = "0"
 latitude = "49.3125"
 longitude = "17.3750"
 
-filename = "satelity.json"
+
 
 #
 # licenseKey = "TLX2JG-94DFXJ-K57JEF-4XB1"
@@ -27,7 +27,7 @@ filename = "satelity.json"
 # latitude = GPS.latitude
 # longitude = GPS.longitude
 #
-# filename = "satelity.json"
+
 
 
 RadioSatellites =["14781"]#, "53385","43678","53385","25544","51085", "49396"]
