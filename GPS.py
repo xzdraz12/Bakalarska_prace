@@ -28,10 +28,9 @@ def RawGPS(gpsModule):
         buff = str(gpsModule.readline())
         parts = buff.split(',')
         print(buff)
-        if (parts[0] == "b'$GPGGA" and len(parts) == 15):
+        if (parts[0] == "b'$GPGGA" and len(parts) == 15): #spíš GNGGA
             if (parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
                 print(buff)
-                print("achoj")
                 latitude = convertToDegree(parts[2])
                 if (parts[3] == 'S'):
                     latitude = -latitude
@@ -39,7 +38,6 @@ def RawGPS(gpsModule):
                 if (parts[5] == 'W'):
                     longitude = -longitude
                 satellites = parts[7]
-                GPStime = parts[1][0:2] + ":" + parts[1][2:4] + ":" + parts[1][4:6]
                 #GPSaltitude = parts[9]
                 FIX_STATUS_GPS = True
                 break

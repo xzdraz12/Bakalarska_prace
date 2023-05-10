@@ -3,8 +3,8 @@ import utime
 import settings
 import sys
 global ssid, password
-ssid = "Musli"
-password = "vodak2019"
+ssid = "SSID"
+password = "PASSWORD"
 
 global wlan
 wlan = network.WLAN(network.STA_IF)
@@ -51,5 +51,3 @@ def ConnectWifi():
         sys.exit()
 
 
-
-ConnectWifi()

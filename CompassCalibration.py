@@ -2,23 +2,57 @@ import ujson
 import urequests
 import utime
 import machine
-import Compass
+from Compass import HMC5883L
 import settings
-
-global xs, ys, xb, yb
-xs = ""
-ys = ""
-xb = ""
-yb = ""
+import math, array
+from ustruct import pack
 
 
-def ReadCompassforCalib():
+def read(self):
+    data = self.data
+    gain = self.gain
 
-    read = machine.I2C(scl=3,sda=2)
+    self.i2c.readfrom_mem_into(0x1e, 0x03, data)
 
+    x = (data[0] << 8) | data[1]
+    y = (data[4] << 8) | data[5]
+    z = (data[2] << 8) | data[3]
 
-def Calibrate():
-    sensor = Compass.HMC5883L()
+    x = x - (1 << 16) if x & (1 << 15) else x
+    y = y - (1 << 16) if y & (1 << 15) else y
+    z = z - (1 << 16) if z & (1 << 15) else z
+
+    x = x * gain
+    y = y * gain
+    z = z * gain
+
+    # Apply calibration corrections
+    x = x * self.xs + self.xb
+    y = y * self.ys + self.yb
+
+    return x, y, z
+
+def AllTogether():
+    altitude = "10"
+    longitude = "49.3125"
+    latitude = "17.3750"
+    year = str(utime.gmtime()[0] + utime.gmtime()[1] / 12)
+
+    headers = {"API-Key": "VNFndFbOqgZ180EAPErDyCG5YQPBf3fY"}
+
+    hostname = "https://geomag.amentum.io/wmm/magnetic_field?altitude=" + altitude + "&longitude=" + longitude + "&latitude=" + latitude + "&year=" + year
+
+    response = urequests.request(method="GET", url=hostname, data=None, json=None, headers=headers).text
+    json_payload = ujson.loads(response)
+
+    declination = float(ujson.dumps(json_payload["declination"]["value"]))
+
+    inclination = float(ujson.dumps(json_payload["inclination"]["value"]))
+
+    ##______________________________________________________________________________________
+
+    sensor = HMC5883L
+
     Xmin = 1000
     Xmax = -1000
     Ymin = 1000
@@ -74,52 +108,78 @@ def Calibrate():
     ys = (Xmax - Xmin) / (Ymax - Ymin)
     xb = xs * (1 / 2 * (Xmax - Xmin) - Xmax)
     yb = xs * (1 / 2 * (Ymax - Ymin) - Ymax)
-    #
-    # print("Calibration corrections:")
-    # print("xs=" + str(xs))
-    # print("xb=" + str(xb))
-    # print("ys=" + str(ys))
-    # print("yb=" + str(yb))
-    #
-    # print(sensor.format_result(x, y, z))
-    # print("Xmin=" + str(Xmin) + "; Xmax=" + str(Xmax) + "; Ymin=" + str(Ymin) + "; Ymax=" + str(Ymax))
 
+    # ____________________________________________________________________________________________
 
-def GetCompassApi():
-
-
-    altitude = "10"
-    longitude = "49.3125"
-    latitude = "17.3750"
-    year = str(utime.gmtime()[0]+utime.gmtime()[1]/12)
-
-    headers = {"API-Key": "VNFndFbOqgZ180EAPErDyCG5YQPBf3fY"}
-
-    hostname = "https://geomag.amentum.io/wmm/magnetic_field?altitude="+altitude+"&longitude="+longitude+"&latitude="+longitude+"&year="+year
-
-
-    response = urequests.request(method = "GET", url = hostname, data=None, json = None, headers=headers).text
-    #print(response)
-    json_payload = ujson.loads(response)
-
-    declination = float(ujson.dumps(json_payload["declination"]["value"]))
-    #print(declination)
-    inclination = float(ujson.dumps(json_payload["inclination"]["value"]))
-    #print(inclination)
+    __gain__ = {
+        '0.88': (0 << 5, 0.73),
+        '1.3': (1 << 5, 0.92),
+        '1.9': (2 << 5, 1.22),
+        '2.5': (3 << 5, 1.52),
+        '4.0': (4 << 5, 2.27),
+        '4.7': (5 << 5, 2.56),
+        '5.6': (6 << 5, 3.03),
+        '8.1': (7 << 5, 4.35)
+    }
 
 
 
+    #def __init__(scl=3, sda=2, address=0x1e, gauss='1.9', decl=(declination, inclination)):
+    i2c = machine.I2C(scl=machine.Pin(3), sda=machine.Pin(2), freq=15000)
+    gauss = '1.9'
+        # Initialize sensor.
+        # print("achoj" + str(xs))
 
-# machine.freq(240000000)
-# GetCompassApi()
-#
-# sensor = Compass.HMC5883L()
-#
-# while True:
-#     utime.sleep(1)
-#     x, y, z = sensor.read()
-#     print(sensor.format_result(x, y, z))
+    i2c.start()
 
-#Calibrate()
+        # Configuration register A:
+        #   0bx11xxxxx  -> 8 samples averaged per measurement
+        #   0bxxx100xx  -> 15 Hz, rate at which data is written to output registers
+        #   0bxxxxxx00  -> Normal measurement mode
+    i2c.writeto_mem(0x1e, 0x00, pack('B', 0b111000))
+
+        # Configuration register B:
+    reg_value, gain = __gain__[gauss]
+    i2c.writeto_mem(0x1e, 0x01, pack('B', reg_value))
+
+        # Set mode register to continuous mode.
+    i2c.writeto_mem(0x1e, 0x02, pack('B', 0x00))
+    i2c.stop()
+
+        # Convert declination (tuple of degrees and minutes) to radians.
+    decl = (declination + inclination / 60) * math.pi / 180
+
+        # Reserve some memory for the raw xyz measurements.
+    data = array('B', [0] * 6)
 
 
+
+    def heading(self, x, y):
+        heading_rad = math.atan2(y, x)
+        heading_rad += self.declination
+
+        # Correct reverse heading.
+        if heading_rad < 0:
+            heading_rad += 2 * math.pi
+
+        # Compensate for wrapping.
+        elif heading_rad > 2 * math.pi:
+            heading_rad -= 2 * math.pi
+
+        # Convert from radians to degrees.
+        heading = heading_rad * 180 / math.pi
+        print(heading_rad)
+        degrees = math.floor(heading)
+        minutes = round((heading - degrees) * 60)
+        return degrees, minutes
+
+    def format_result(x, y, z):
+        degrees, minutes = heading(x, y, z)
+
+        print("xs" + xs)
+        print(ys)
+        return ('X: {:.4f}, Y: {:.4f}, Z: {:.4f}, Heading: {}° {}′ '.format(x, y, z, degrees, minutes))
+
+
+
+AllTogether()

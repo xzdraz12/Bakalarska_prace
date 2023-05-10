@@ -7,7 +7,7 @@ import utime
 from pico_i2c_lcd import I2cLcd
 from machine import I2C, UART, Pin
 import machine
-
+#from pcd8544_fb import GpioLcd
 #
 #nastaveni displeje
 global I2C_ADDR,I2C_NUM_ROWS,I2C_NUM_COLS,lcd
@@ -45,8 +45,19 @@ timezone = 1
 #krokove motory
 #azimut
 steps_per_revolution_azim = 200
-step_az = Pin(28, Pin.OUT)
-dir_az = Pin(27, Pin.OUT)
+step_az = Pin(16, Pin.OUT)
+dir_az = Pin(17, Pin.OUT)
+
+#elevace
+steps_per_revolution_elev = 200
+step_el = Pin(18, Pin.OUT)
+dir_el = Pin(19, Pin.OUT)
+
+#Vyhledavani preletu
+licenseKey = "TLX2JG-94DFXJ-K57JEF-4XB1"
+MinElevation = "0"
+DaysPrediction = "2"
+ObserverAltitude = "0"
 
 
 

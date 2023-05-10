@@ -1,36 +1,28 @@
-import machine
 import ujson
-import utime, time
+import utime
 import math
 import urequests
-
-import ntptime
-#import GPS
+import GPS
 import Motors
 import settings
 
 
-licenseKey = "TLX2JG-94DFXJ-K57JEF-4XB1"
-MinElevation = "0"
-DaysPrediction = "2"
-ObserverAltitude = "0"
-latitude = "49.3125"
-longitude = "17.3750"
-
-
-
-#
 # licenseKey = "TLX2JG-94DFXJ-K57JEF-4XB1"
 # MinElevation = "0"
 # DaysPrediction = "2"
 # ObserverAltitude = "0"
-# latitude = GPS.latitude
-# longitude = GPS.longitude
-#
+# latitude = "49.3125"
+# longitude = "17.3750"
+
+licenseKey = settings.licenseKey
+MinElevation = settings.MinElevation
+DaysPrediction = settings.DaysPrediction
+ObserverAltitude = settings.ObserverAltitude
+latitude = GPS.latitude
+longitude = GPS.longitude
 
 
-
-RadioSatellites =["14781"]#, "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites =["14781", "53385","43678","53385","25544","51085", "49396"]
 
 def DownloadAPI():
     #stahuju data, kdy nastane dalsi prelet
@@ -47,7 +39,7 @@ def DownloadAPI():
     for satID in RadioSatellites:
         url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
-        #GetPasses = urequests.get("https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude +"/"+ longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey)
+
         GetPasses = urequests.get(url)
 
         GetPasses_json = GetPasses.json()
@@ -72,7 +64,6 @@ def DownloadAPI():
 
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
-    #print(Pass_start)
 
 def DownloadForDesiredPass():
     global CurrentSatId, CurrentSatName
@@ -130,7 +121,6 @@ def DownloadForDesiredPass():
         settings.lcd.clear()
         settings.lcd.putstr(CurrentSatId+"in:     ")
         settings.lcd.putstr(Hours + ":" + Minutes_OK + ":" + Seconds_OK)
-        #settings.lcd.putstr("for+PassDuration)
         utime.sleep(1)
 
         if SlewOnlyOnce == True and TimeToPass <=50:
@@ -187,9 +177,9 @@ def DownloadForDesiredPass():
 
 
                         if PastElev > CurElev  and i>0:
-                            Motors.move_stepper(TurnElev, "clockwise", "elevation")
+                            Motors.rotate_elevation_slew(TurnElev, "cw", 8)
                         elif PastElev < CurElev and i>0:
-                            Motors.move_stepper(TurnElev, "counterclockwise", "elevation")
+                            Motors.rotate_elevation_slew(TurnElev, "ccw", 8)
 
                         else:
                             continue
@@ -197,32 +187,18 @@ def DownloadForDesiredPass():
 
                         if ListOfPositions[i][2] < 0:
 
-                            #PositionInList = PositionInList +1s
                             Pass_start.pop(0)
-                            #Pass_end.pop(RawID)
-                            #CurrentSatName.pop(RawID)
                             settings.lcd.clear()
                             settings.lcd.putstr("Pass is over")
                             print("Pass is over")
-                            Motors.DeactivateStepper("elevation")
                             utime.sleep(3)
                             return
 
-
                         utime.sleep(1)
-
-
 
 def DownloadForDesiredPass_loop():
     while True:
         DownloadForDesiredPass()
 
 
-
-machine.freq(240000000)
-
-ntptime.settime()
-DownloadAPI()
-while True:
-    DownloadForDesiredPass_loop()
 

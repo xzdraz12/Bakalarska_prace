@@ -1,16 +1,16 @@
 import machine
-import urequests
-
-from Compass import  HMC5883L
-import CompassCalibration
-import Satellites
+# import urequests
+#
+# #from Compass import  HMC5883L
+# import CompassCalibration
+# import Satellites
 import menu
-import settings
-import wifi
-from GPS import RawGPS
-import GPS
-import utime
-import ntptime
+# import settings
+# import wifi
+# from GPS import RawGPS
+# import GPS
+# import utime
+# import ntptime
 
 #
 #
@@ -24,7 +24,7 @@ import ntptime
 #
 #
 machine.freq(240000000)
-# menu.Welcome()
+menu.Welcome()
 # wifi.ConnectWifi()
 # ntptime.settime()
 #
@@ -42,14 +42,14 @@ machine.freq(240000000)
 #
 #     Satellites.DownloadForDesiredPass_loop()
 
-CompassCalibration.GetCompassApi()
-CompassCalibration.Calibrate()
-sensor = HMC5883L()
-
-while True:
-    utime.sleep(1)
-    x, y, z = sensor.read()
-    print(sensor.format_result(x, y, z))
+# CompassCalibration.GetCompassApi()
+# CompassCalibration.Calibrate()
+# sensor = HMC5883L()
+#
+# while True:
+#     utime.sleep(1)
+#     x, y, z = sensor.read()
+#     print(sensor.format_result(x, y, z))
 
 
 
