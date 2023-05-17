@@ -5,26 +5,21 @@ import urequests
 import GPS
 import Motors
 import settings
-
-
-# licenseKey = "TLX2JG-94DFXJ-K57JEF-4XB1"
-# MinElevation = "0"
-# DaysPrediction = "2"
-# ObserverAltitude = "0"
-# latitude = "49.3125"
-# longitude = "17.3750"
+from settings import oled as oled
 
 licenseKey = settings.licenseKey
 MinElevation = settings.MinElevation
 DaysPrediction = settings.DaysPrediction
-ObserverAltitude = settings.ObserverAltitude
+ObserverAltitude = GPS.GPSaltitude
 latitude = GPS.latitude
 longitude = GPS.longitude
 
 
-RadioSatellites =["14781", "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites = settings.RadioSatellites
+WeatherSatellites = settings.WeatherSatellites
+ISS = settings.ISS
 
-def DownloadAPI():
+def DownloadAPI(list_name):
     #stahuju data, kdy nastane dalsi prelet
     global Pass_start, Pass_end, Satname, Pass_azimuth
     Pass_start = {}
@@ -36,13 +31,24 @@ def DownloadAPI():
     settings.lcd.putstr("Downloading satellite data")
     settings.lcd.blink_cursor_on()
 
-    for satID in RadioSatellites:
+    if list_name == "radio":
+        SatList = RadioSatellites
+
+    if list_name == "weather":
+        SatList = WeatherSatellites
+
+    if list_name == "iss":
+        SatList = ISS
+
+
+
+    for satID in SatList:
         url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
 
         GetPasses = urequests.get(url)
 
-        GetPasses_json = GetPasses.json()
+        GetPasses_json = GetPasses.json
 
         SatName = ujson.dumps(GetPasses_json["info"]["satname"])
 
@@ -107,29 +113,46 @@ def DownloadForDesiredPass():
         print(TimeToPass)
 
         if CurrentTimeInMyTimezone > End:
+            oled.fill(0)
+            oled.show()
+            oled.text("Bad timezone",0,0)
+            oled.text("Adjust",0,10)
+            oled.text("timezone",0,20)
+            oled.show()
+
             print("Bad Timezone")
             print("use settings to adjust timezone")
 
-            settings.lcd.clear()
-            settings.lcd.putstr("Bad timezone")
-            utime.sleep(1)
-            settings.lcd.clear()
-            settings.lcd.putstr("use settings to adjust the timezone")
             break
 
-
-        settings.lcd.clear()
-        settings.lcd.putstr(CurrentSatId+"in:     ")
-        settings.lcd.putstr(Hours + ":" + Minutes_OK + ":" + Seconds_OK)
+        oled.fill(0)
+        oled.show()
+        oled.text(CurrentSatName,0,0)
+        oled.text("in:",0,10)
+        oled.text(Hours+":"+Minutes_OK+":"+Seconds_OK,0,20)
+        oled.show()
         utime.sleep(1)
+        oled.fill(0)
+        oled.show()
+
+        print(CurrentSatName)
+        print("in :")
+        print(Hours+":"+Minutes_OK+":"+Seconds_OK)
 
         if SlewOnlyOnce == True and TimeToPass <=50:
-            settings.lcd.clear()
-            settings.lcd.putstr("Slewing into start position")
+
+            oled.fill(0)
+            oled.show()
+            oled.text("Slewing into",0,0)
+            oled.text("start position",0,10)
+            oled.show()
+
+            print("Slewing into start position")
 
             Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
-            
-            settings.lcd.clear()
+
+            oled.fill(0)
+            oled.show()
 
             SlewOnlyOnce = False
 
@@ -151,12 +174,11 @@ def DownloadForDesiredPass():
                     PositionTuple = (timestamp, azimuth, elevation)
                     ListOfPositions.append(PositionTuple)
 
-
                 if CurrentTimeInMyTimezone >= ListOfPositions[0][0]:
 
                     for i in range (0, len(ListOfPositions)):
                         print(ListOfPositions[i][2])
-                        settings.lcd.clear()
+
                         PastAzimuth = str(ListOfPositions[i-1][1])
                         CurAzimuth = str(ListOfPositions[i][1])
                         TurnAzimuth = abs(float(PastAzimuth)-float(CurAzimuth))
@@ -164,20 +186,25 @@ def DownloadForDesiredPass():
                         PastElev = str(ListOfPositions[i-1][2])
                         CurElev = str(ListOfPositions[i][2])
                         TurnElev = abs(float(PastElev)-float(CurElev))
-                        settings.lcd.putstr("az: " + CurAzimuth + "        el: " + CurElev)
 
+                        oled.fill(0)
+                        oled.show()
+                        oled.text("Az:"+CurAzimuth)
+                        oled.text("El:"+CurElev)
+                        oled.show()
+
+                        print("Az: "+CurAzimuth)
+                        print("El: "+CurElev)
 
                         if PastAzimuth > CurAzimuth and i>0:
                             Motors.rotate_azimuth_slew(TurnAzimuth, "ccw", 8)
-                            print("tocim proti")
                             
                         elif PastAzimuth < CurAzimuth and i > 0:
                             Motors.rotate_azimuth_slew(TurnAzimuth, "cw", 8)
-                            print("tocim po")
-
 
                         if PastElev > CurElev  and i>0:
                             Motors.rotate_elevation_slew(TurnElev, "cw", 8)
+
                         elif PastElev < CurElev and i>0:
                             Motors.rotate_elevation_slew(TurnElev, "ccw", 8)
 
@@ -188,10 +215,15 @@ def DownloadForDesiredPass():
                         if ListOfPositions[i][2] < 0:
 
                             Pass_start.pop(0)
-                            settings.lcd.clear()
-                            settings.lcd.putstr("Pass is over")
+                            oled.fill(0)
+                            oled.show()
+                            oled.text("Pass is over")
+                            oled.show()
+
                             print("Pass is over")
                             utime.sleep(3)
+                            oled.fill(0)
+                            oled.show()
                             return
 
                         utime.sleep(1)

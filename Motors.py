@@ -1,4 +1,3 @@
-from machine import Pin
 import utime
 
 import settings
@@ -67,7 +66,7 @@ def rotate_azimuth_change_speed(angle, direction, microstep):
     else:
         num_of_steps = (angle / (360 / steps_az)) * microstep
 
-        part_full = num_of_steps-((180/(360/steps_az))*microstep) #plna rychlost, odcitam 180 protoze z obou stran 90
+        part_full = num_of_steps-((180/(360/steps_az))*microstep)
         parts_change = (num_of_steps-part_full)/2
 
         speedup = (delay_max - delay_min) / (parts_change)

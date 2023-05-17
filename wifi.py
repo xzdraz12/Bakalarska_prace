@@ -2,9 +2,11 @@ import network
 import utime
 import settings
 import sys
+from settings import oled as oled
+
 global ssid, password
-ssid = "SSID"
-password = "PASSWORD"
+ssid = "Musli"
+password = "vodak2019"
 
 global wlan
 wlan = network.WLAN(network.STA_IF)
@@ -15,39 +17,58 @@ def ConnectWifi():
     wlan.active(True)
     attempts = 0
 
-    print("Connecting to wifi")
-    settings.lcd.clear()
-    settings.lcd.putstr("Connecting to WiFi")
-    settings.lcd.blink_cursor_on()
+    oled.fill(0)
+    oled.show()
+    oled.text("Connecting to",0,0)
+    oled.text("WiFi", 0,10)
+    oled.show()
+    print("Connecting to WiFi")
 
     while not wlan.isconnected():
         wlan.connect(ssid, password)
         utime.sleep(5)
         attempts = attempts +1
         if attempts == 5:
-            settings.lcd.clear()
-            settings.lcd.putstr("Time Out")
+            oled.fill(0)
+            oled.show()
+            oled.text("Time Out",0,0)
+            print("Time Out")
             break
         if wlan.isconnected():
             break
 
     if wlan.isconnected():
-        settings.lcd.clear()
+        oled.fill(0)
+        oled.show()
+        oled.text("WiFi is", 0,0)
+        oled.text("connected",0,10)
+        oled.show()
         print("Connected")
-        settings.lcd.blink_cursor_off()
-        settings.lcd.clear()
-        settings.lcd.putstr("WiFi is connected")
         utime.sleep(2)
-        settings.lcd.clear()
-
+        oled.fill(0)
+        oled.show()
     else:
         print("Error, please restart the device")
-        settings.lcd.clear()
-        settings.lcd.putstr("Error, please restart the device")
+        oled.fill(0)
+        oled.show()
+        oled.text("Error, please",0,0)
+        oled.text("restart the device", 0,10)
+        oled.text("by unplugging", 0,20)
+        oled.show()
 
-        for i in range (1, 10):
-            settings.lcd.clear()
-            settings.lcd.putstr(i)
-        sys.exit()
 
+def wifiStatus():
+    info = wlan.ifconfig()
+    oled.fill(0)
+    oled.show()
+    oled.text("IP:",0,0)
+    oled.text(info[0],0,10)
+    oled.text("Mask:",0,20)
+    oled.text(info[1],0,30)
+    oled.text("Gtw:",0,40)
+    oled.text(info[2],0,50)
+    #oled.text("DNS:"+info[3],0,30)
+    oled.show()
 
+ConnectWifi()
+wifiStatus()

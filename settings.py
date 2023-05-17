@@ -1,28 +1,34 @@
-import time
-
-from machine import RTC
-import utime
 #nastaveni i2c pro displej
+from machine import I2C, Pin
+from ssd1306 import SSD1306_I2C
 
-from pico_i2c_lcd import I2cLcd
-from machine import I2C, UART, Pin
-import machine
-#from pcd8544_fb import GpioLcd
-#
-#nastaveni displeje
-global I2C_ADDR,I2C_NUM_ROWS,I2C_NUM_COLS,lcd
+WIDTH = 128
+HEIGHT = 64
+i2c = I2C(1, scl = Pin(7), sda = Pin(6), freq=200000)
+oled = SSD1306_I2C(WIDTH, HEIGHT, i2c)
 
-I2C_ADDR = 0x20
-I2C_NUM_ROWS = 2
-I2C_NUM_COLS = 16
 
-Display_i2c = I2C(0, sda=machine.Pin(0), scl=machine.Pin(1), freq=400000)
-lcd = I2cLcd(Display_i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
+
+
+#enkoder
+BTN_ENC = Pin(11, Pin.IN, Pin.PULL_UP)
+BTN_EN1 = Pin(10, Pin.IN, Pin.PULL_UP)
+BTN_EN2 = Pin(9, Pin.IN, Pin.PULL_UP)
+
+
+#listy se satelity
+RadioSatellites =["14781", "53385","43678","53385","25544","51085", "49396"]
+WeatherSatellites = ["14781"]
+ISS = ["1222"]
+
+
+
+
 
 
 #nastaveni testovaciho tlacitka
-led = machine.Pin(25, machine.Pin.OUT)
-button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
+#led = machine.Pin(25, machine.Pin.OUT)
+#button = machine.Pin(15, machine.Pin.IN, machine.Pin.PULL_DOWN)
 
 
 # # #nastaveni kompasu
