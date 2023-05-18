@@ -19,8 +19,7 @@ WeatherSatellites = settings.WeatherSatellites
 ISS = settings.ISS
 
 def DownloadAPI():
-    while settings.BTN_ENC.value() == 0:
-        continue
+
 
     #stahuju data, kdy nastane dalsi prelet
     global Pass_start, Pass_end, Satname, Pass_azimuth
@@ -82,6 +81,9 @@ def DownloadAPI():
 
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
+
+    while settings.BTN_ENC.value()==1:
+        continue
 
 def DownloadForDesiredPass():
     global CurrentSatId, CurrentSatName
@@ -275,6 +277,9 @@ def DownloadForDesiredPass_loop():
     while True:
         DownloadForDesiredPass()
 
+        while settings.BTN_ENC.value() == 1:
+            break
+
 def convert_seconds(seconds):
     hours = seconds // 3600
     seconds %= 3600
@@ -290,5 +295,4 @@ def RunItAll():
     DownloadAPI()
     DownloadForDesiredPass_loop()
 
-    while settings.BTN_ENC.value()==1:
-        continue
+

@@ -64,7 +64,7 @@ def Welcome():
 
 def GetFiles():
     menu = []
-    files = ["WiFi", "GPS", "Group","Observe"]
+    files = ["Observe","WiFi", "GPS", "Group"]
 
     for i in range(0, len(files)):
         menu.append(files[i])
@@ -104,6 +104,9 @@ def ShowMenu(menu):
 def launch(filename):
     global file_list
     oled.fill_rect(0, 0, width, height, 0)
+    if filename == "Observe":
+        Satellites.RunItAll()
+        
     if filename == "WiFi":
         wifi.wifiStatus()
 
@@ -111,8 +114,7 @@ def launch(filename):
     if filename == "GPS":
         GPS.GPS_info()
 
-    if filename == "Obseve":
-        Satellites.RunItAll()
+
         #Satellites.DownloadForDesiredPass_loop()
 
     ShowMenu(file_list)

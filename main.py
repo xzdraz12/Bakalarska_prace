@@ -43,9 +43,6 @@ Compass.GetCompassApi()
 #kalibrace kompasu
 
 
-
-while True:
-
 #satelity
 Satellites.DownloadAPI()
 Satellites.DownloadForDesiredPass_loop()
