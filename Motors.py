@@ -224,6 +224,6 @@ def rotate_elevation_change_speed(angle, direction, microstep):
 
 #def CalibrateAzimuth():
 
-rotate_azimuth_change_speed(360, "cw", 1)
+#rotate_azimuth_change_speed(360, "cw", 1)
 
 #CalibrateElevation()

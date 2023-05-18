@@ -17,7 +17,7 @@ BTN_EN2 = Pin(9, Pin.IN, Pin.PULL_UP)
 
 
 #listy se satelity
-RadioSatellites =["14781", "53385","43678","53385","25544","51085", "49396"]
+RadioSatellites =["33591"]#, "53385","43678"]#,"53385","25544","51085", "49396"]
 WeatherSatellites = ["14781"]
 ISS = ["1222"]
 
@@ -45,7 +45,7 @@ global timezone
 global DaylightSaving
 
 DaylightSaving = 1 #  pro letni cas, 0 pro zimni
-timezone = 1
+timezone = 2
 
 
 #krokove motory

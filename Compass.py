@@ -1,4 +1,3 @@
-
 import math
 from ustruct import pack
 from array import array
@@ -6,100 +5,115 @@ import machine
 import ujson
 import urequests
 import utime
+
+import GPS
+from settings import oled as oled
 import settings
+def GetCompassApi():
+    global declination, inclination
 
-# def GetCompassApi():
-#     global declination, inclination
-#
-#     altitude = "10"
-#     longitude = "49.3125"
-#     latitude = "17.3750"
-#     year = str(utime.gmtime()[0] + utime.gmtime()[1] / 12)
-#
-#     headers = {"API-Key": "VNFndFbOqgZ180EAPErDyCG5YQPBf3fY"}
-#
-#     hostname = "https://geomag.amentum.io/wmm/magnetic_field?altitude=" + altitude + "&longitude=" + longitude + "&latitude=" + latitude + "&year=" + year
-#
-#     response = urequests.request(method="GET", url=hostname, data=None, json=None, headers=headers).text
-#     print(response)
-#     json_payload = ujson.loads(response)
-#
-#     declination = float(ujson.dumps(json_payload["declination"]["value"]))
-#     print(declination)
-#
-#     inclination = float(ujson.dumps(json_payload["inclination"]["value"]))
-#     print(inclination)
-# def ReadXYZ():
-#     x,y,z = HMC5883L_calib.read
-#     return x,y,z
+    # altitude = GPS.altitude
+    # longitude = GPS.longitude
+    # latitude = GPS.latitude
+
+    altitude = "10"
+    longitude = "49.3125"
+    latitude = "17.3750"
+    year = str(utime.gmtime()[0] + utime.gmtime()[1] / 12)
+
+    headers = {"API-Key": "VNFndFbOqgZ180EAPErDyCG5YQPBf3fY"}
+    hostname = "https://geomag.amentum.io/wmm/magnetic_field?altitude=" + altitude + "&longitude=" + longitude + "&latitude=" + latitude + "&year=" + year
+
+    while True:
+        try:
+
+            response = urequests.request(method="GET", url=hostname, data=None, json=None, headers=headers).text
+            print(response)
+            json_payload = ujson.loads(response)
+
+            oled.fill(0)
+            oled.show()
+            oled.text("Obtaining magnetic",0,0)
+            oled.text("magnetic",0,10)
+            oled.text("incllination and",0,20)
+            oled.text("declination",0,30)
+            oled.show()
+            break
+
+        except Exception as e:
+            print(e)
+            continue
+
+    declination = float(ujson.dumps(json_payload["declination"]["value"]))
+    print(declination)
+
+    inclination = float(ujson.dumps(json_payload["inclination"]["value"]))
+    print(inclination)
+
+def Calibrate():
+    #global xs, ys, xb, yb
+
+    sensor = HMC5883L
+
+    Xmin = 1000
+    Xmax = -1000
+    Ymin = 1000
+    Ymax = -1000
+
+    steps = 0
+    num_of_steps = (720 / (360 / 200)) * 8
+
+    part_full = int(num_of_steps - ((180 / (360 / 200)) * 8))  # plna rychlost, odcitam 180 protoze z obou stran 90
+    parts_change = int((num_of_steps - part_full) / 2)
+
+    delay_max = 0.007
+    delay_min = 0.001
+
+    speedup = (delay_max - delay_min) / (parts_change)
+    print(speedup)
+
+    settings.dir_az.value(0)
+    for i in range(parts_change):
+        settings.step_az.value(1)
+        utime.sleep(delay_max - (i * speedup))
+        settings.step_az.value(0)
+        utime.sleep(delay_max - (i * speedup))
+        (x, y, z) = ReadXYZ()
+        Xmin = min(x, Xmin)
+        Xmax = max(x, Xmax)
+        Ymin = min(y, Ymin)
+        Ymax = max(y, Ymax)
+
+    for i in range(part_full):
+        settings.step_az.value(1)
+        utime.sleep(delay_min)
+        settings.step_az.value(0)
+        utime.sleep(delay_min)
+        x, y, z = sensor.read
+        Xmin = min(x, Xmin)
+        Xmax = max(x, Xmax)
+        Ymin = min(y, Ymin)
+        Ymax = max(y, Ymax)
+
+    for i in range(parts_change):
+        settings.step_az.value(1)
+        utime.sleep(delay_min + (i * speedup))
+        settings.step_az.value(0)
+        utime.sleep(delay_min + (i * speedup))
+       # x, y, z = sensor.read
+        Xmin = min(x, Xmin)
+        Xmax = max(x, Xmax)
+        Ymin = min(y, Ymin)
+        Ymax = max(y, Ymax)
+
+    xs = 1
+    ys = (Xmax - Xmin) / (Ymax - Ymin)
+    xb = xs * (1 / 2 * (Xmax - Xmin) - Xmax)
+    yb = xs * (1 / 2 * (Ymax - Ymin) - Ymax)
+
+    return xs,ys,xb,yb
 
 
-
-
-# def Calibrate():
-#     #global xs, ys, xb, yb
-#
-#     sensor = HMC5883L_calib
-#
-#     Xmin = 1000
-#     Xmax = -1000
-#     Ymin = 1000
-#     Ymax = -1000
-#
-#     steps = 0
-#     num_of_steps = (720 / (360 / 200)) * 8
-#
-#     part_full = int(num_of_steps - ((180 / (360 / 200)) * 8))  # plna rychlost, odcitam 180 protoze z obou stran 90
-#     parts_change = int((num_of_steps - part_full) / 2)
-#
-#     delay_max = 0.007
-#     delay_min = 0.001
-#
-#     speedup = (delay_max - delay_min) / (parts_change)
-#     print(speedup)
-#
-#     settings.dir_az.value(0)
-#     for i in range(parts_change):
-#         settings.step_az.value(1)
-#         utime.sleep(delay_max - (i * speedup))
-#         settings.step_az.value(0)
-#         utime.sleep(delay_max - (i * speedup))
-#         (x, y, z) = ReadXYZ()
-#         Xmin = min(x, Xmin)
-#         Xmax = max(x, Xmax)
-#         Ymin = min(y, Ymin)
-#         Ymax = max(y, Ymax)
-#
-#     for i in range(part_full):
-#         settings.step_az.value(1)
-#         utime.sleep(delay_min)
-#         settings.step_az.value(0)
-#         utime.sleep(delay_min)
-#         x, y, z = sensor.read
-#         Xmin = min(x, Xmin)
-#         Xmax = max(x, Xmax)
-#         Ymin = min(y, Ymin)
-#         Ymax = max(y, Ymax)
-#
-#     for i in range(parts_change):
-#         settings.step_az.value(1)
-#         utime.sleep(delay_min + (i * speedup))
-#         settings.step_az.value(0)
-#         utime.sleep(delay_min + (i * speedup))
-#        # x, y, z = sensor.read
-#         Xmin = min(x, Xmin)
-#         Xmax = max(x, Xmax)
-#         Ymin = min(y, Ymin)
-#         Ymax = max(y, Ymax)
-#
-#     xs = 1
-#     ys = (Xmax - Xmin) / (Ymax - Ymin)
-#     xb = xs * (1 / 2 * (Xmax - Xmin) - Xmax)
-#     yb = xs * (1 / 2 * (Ymax - Ymin) - Ymax)
-#
-#     return xs,ys,xb,yb
-#
-#
 # class HMC5883L_calib():
 #     __gain__ = {
 #         '0.88': (0 << 5, 0.73),
@@ -282,19 +296,19 @@ class HMC5883L():
         degrees, minutes = self.heading(x, y)
         return 'X: {:.4f}, Y: {:.4f}, Z: {:.4f}, Heading: {}° {}′ '.format(x, y, z, degrees, minutes)
 
-def Test():
+# def Test():
+#
+#     sensor = HMC5883L
+#
+#     x,y,z = sensor.read
+#     print(x)
+#
+# Test()
 
-    sensor = HMC5883L
-
-    x,y,z = sensor.read
-    print(x)
-
-Test()
 
 
-
-# machine.freq(240000000)
-# GetCompassApi()
+machine.freq(240000000)
+GetCompassApi()
 # Calibrate()
 #
 # sensor = HMC5883L

@@ -1,12 +1,14 @@
 from machine import UART
 import utime, time
+
+import settings
 from settings import oled as oled
 
 gpsModule = UART(0, baudrate=9600)
 buff = bytearray(255)
 
 TIMEOUT = False
-FIX_STATUS_GPS = False
+FIX_STATUS_GPS = True
 
 latitude = ""
 longitude = ""
@@ -43,8 +45,8 @@ def RawGPS(gpsModule):
             break
         utime.sleep_ms(500)
 
-        if (TIMEOUT == True):
-            TIMEOUT == False
+       # if (TIMEOUT == True):
+        #    TIMEOUT == False
 
 def convertToDegree(RawDegrees):
     RawAsFloat = float(RawDegrees)
@@ -79,15 +81,22 @@ def GPSStatus():
         utime.sleep(3)
 
 def GPS_info():
+    while settings.BTN_ENC.value() == 0:
+        continue
+
     oled.fill(0)
     oled.show()
     oled.text("Lat:"+latitude,0,0)
     oled.text("Lon:"+longitude,0,10)
     oled.text("Alt:"+altitude,0,20)
     oled.text("Sat:"+satellites,0,30)
+    oled.show()
 
     print("Lat: "+latitude)
     print("Lon: "+longitude)
     print("Time: "+GPStime)
     print("Altitude: "+altitude)
     print("Satellites: "+satellites)
+
+    while settings.BTN_ENC.value()==1:
+        continue

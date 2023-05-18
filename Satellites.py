@@ -10,16 +10,18 @@ from settings import oled as oled
 licenseKey = settings.licenseKey
 MinElevation = settings.MinElevation
 DaysPrediction = settings.DaysPrediction
-ObserverAltitude = GPS.GPSaltitude
-latitude = GPS.latitude
-longitude = GPS.longitude
-
+ObserverAltitude = "190"#GPS.GPSaltitude
+latitude = "49.1234"#GPS.latitude
+longitude = "15.009"#GPS.longitude
 
 RadioSatellites = settings.RadioSatellites
 WeatherSatellites = settings.WeatherSatellites
 ISS = settings.ISS
 
-def DownloadAPI(list_name):
+def DownloadAPI():
+    while settings.BTN_ENC.value() == 0:
+        continue
+
     #stahuju data, kdy nastane dalsi prelet
     global Pass_start, Pass_end, Satname, Pass_azimuth
     Pass_start = {}
@@ -27,28 +29,40 @@ def DownloadAPI(list_name):
     Pass_azimuth = {}
     Satname = {}
 
-    settings.lcd.clear()
-    settings.lcd.putstr("Downloading satellite data")
-    settings.lcd.blink_cursor_on()
-
-    if list_name == "radio":
-        SatList = RadioSatellites
-
-    if list_name == "weather":
-        SatList = WeatherSatellites
-
-    if list_name == "iss":
-        SatList = ISS
+    oled.fill(0)
+    oled.show()
+    oled.text("Downloading",0,0)
+    oled.text("satellite",0,10)
+    oled.text("data",0,20)
+    oled.show()
+    print("Downloading satellite data")
 
 
+    # if list_name == "radio":
+    #     SatList = RadioSatellites
+    #
+    # if list_name == "weather":
+    #     SatList = WeatherSatellites
+    #
+    # if list_name == "iss":
+    #     SatList = ISS
 
-    for satID in SatList:
+
+
+    for satID in RadioSatellites:
         url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
 
-        GetPasses = urequests.get(url)
+        while True:
+            try:
+                GetPasses = urequests.get(url)
+                GetPasses_json = GetPasses.json()
+                break
 
-        GetPasses_json = GetPasses.json
+            except Exception as e:
+                print(e)
+                utime.sleep(.5)
+                continue
 
         SatName = ujson.dumps(GetPasses_json["info"]["satname"])
 
@@ -65,8 +79,6 @@ def DownloadAPI(list_name):
             Pass_end[nickname] = int(EndUTC)
             Pass_azimuth[nickname]=float(StartAzimuth)
             Satname[nickname] = str(SatName)
-            
-
 
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
@@ -95,11 +107,12 @@ def DownloadForDesiredPass():
 
     PassDuration = End - Begin
 
-    PassDuration = str(PassDuration)
+    #PassDuration = str(PassDuration)
 
     SlewOnlyOnce = True
     while True:
         CurrentTimeInMyTimezone = utime.time() + (settings.DaylightSaving + settings.timezone) * 3600
+
 
         TimeToPass = Begin - CurrentTimeInMyTimezone
         Hours_float = TimeToPass / 3600
@@ -109,26 +122,43 @@ def DownloadForDesiredPass():
         Seconds = Minutes_OK % 1
         Minutes_OK = str(int(Minutes_OK))
         Seconds_OK = str(int(60 * Seconds))
+        #print(TimeToPass)
 
-        print(TimeToPass)
+        try:
+            CurrentTimeInMyTimezone > End
 
-        if CurrentTimeInMyTimezone > End:
+        except:
+
             oled.fill(0)
             oled.show()
-            oled.text("Bad timezone",0,0)
-            oled.text("Adjust",0,10)
-            oled.text("timezone",0,20)
+            oled.text("Bad timezone", 0, 0)
+            oled.text("Adjust", 0, 10)
+            oled.text("timezone", 0, 20)
             oled.show()
 
             print("Bad Timezone")
             print("use settings to adjust timezone")
-
             break
+
+
+
+        # if CurrentTimeInMyTimezone > End:
+        #     oled.fill(0)
+        #     oled.show()
+        #     oled.text("Bad timezone",0,0)
+        #     oled.text("Adjust",0,10)
+        #     oled.text("timezone",0,20)
+        #     oled.show()
+        #
+        #     print("Bad Timezone")
+        #     print("use settings to adjust timezone")
+        #
+        #     break
 
         oled.fill(0)
         oled.show()
-        oled.text(CurrentSatName,0,0)
-        oled.text("in:",0,10)
+        oled.text(CurrentSatName, 0, 0)
+        oled.text("AOS in:", 0, 10)
         oled.text(Hours+":"+Minutes_OK+":"+Seconds_OK,0,20)
         oled.show()
         utime.sleep(1)
@@ -141,8 +171,8 @@ def DownloadForDesiredPass():
 
         if SlewOnlyOnce == True and TimeToPass <=50:
 
-            oled.fill(0)
-            oled.show()
+            #oled.fill(0)
+            #oled.show()
             oled.text("Slewing into",0,0)
             oled.text("start position",0,10)
             oled.show()
@@ -158,9 +188,18 @@ def DownloadForDesiredPass():
 
         if TimeToPass <= 5:
             while True:
-                url = "https://api.n2yo.com/rest/v1/satellite/positions/" + CurrentSatId + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + "35" + "/&apiKey=" + licenseKey
-                GetPositions = urequests.get(url)
-                GetPositions_json = GetPositions.json()
+
+                while True:
+                    try:
+                        url = "https://api.n2yo.com/rest/v1/satellite/positions/" + CurrentSatId + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + "35" + "/&apiKey=" + licenseKey
+                        GetPositions = urequests.get(url)
+                        GetPositions_json = GetPositions.json()
+                        break
+
+                    except Exception as e:
+                        print(e)
+                        utime.sleep(.5)
+                        continue
 
                 global ListOfPositions
                 ListOfPositions = []
@@ -177,7 +216,10 @@ def DownloadForDesiredPass():
                 if CurrentTimeInMyTimezone >= ListOfPositions[0][0]:
 
                     for i in range (0, len(ListOfPositions)):
-                        print(ListOfPositions[i][2])
+                        #print(ListOfPositions[i][2])
+
+                        oled.fill(0)
+                        oled.show()
 
                         PastAzimuth = str(ListOfPositions[i-1][1])
                         CurAzimuth = str(ListOfPositions[i][1])
@@ -187,10 +229,12 @@ def DownloadForDesiredPass():
                         CurElev = str(ListOfPositions[i][2])
                         TurnElev = abs(float(PastElev)-float(CurElev))
 
-                        oled.fill(0)
-                        oled.show()
-                        oled.text("Az:"+CurAzimuth)
-                        oled.text("El:"+CurElev)
+                        PassDuration = PassDuration-1
+
+                        oled.text(CurrentSatName,0,0)
+                        oled.text("Az:"+CurAzimuth,0,10)
+                        oled.text("El:"+CurElev,0,20)
+                        oled.text("LOS in "+str(convert_seconds(PassDuration)[0])+":"+str(convert_seconds(PassDuration)[1])+":"+str(convert_seconds(PassDuration)[2]),0,30)
                         oled.show()
 
                         print("Az: "+CurAzimuth)
@@ -211,13 +255,12 @@ def DownloadForDesiredPass():
                         else:
                             continue
 
-
                         if ListOfPositions[i][2] < 0:
 
                             Pass_start.pop(0)
                             oled.fill(0)
                             oled.show()
-                            oled.text("Pass is over")
+                            oled.text("Pass is over",0,0)
                             oled.show()
 
                             print("Pass is over")
@@ -232,5 +275,20 @@ def DownloadForDesiredPass_loop():
     while True:
         DownloadForDesiredPass()
 
+def convert_seconds(seconds):
+    hours = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
 
+    return hours, minutes, seconds
 
+def RunItAll():
+    while settings.BTN_ENC.value() == 0:
+        continue
+
+    DownloadAPI()
+    DownloadForDesiredPass_loop()
+
+    while settings.BTN_ENC.value()==1:
+        continue

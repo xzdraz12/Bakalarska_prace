@@ -2,8 +2,8 @@ import machine
 import utime
 from machine import I2C
 
-from pico_i2c_lcd import I2cLcd
-from lcd_api import LcdApi
+from ostatni.pico_i2c_lcd import I2cLcd
+
 I2C_ADDR = 0x27
 I2C_NUM_ROWS = 2
 I2C_NUM_COLS = 16

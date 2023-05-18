@@ -24,6 +24,7 @@ def ConnectWifi():
     oled.show()
     print("Connecting to WiFi")
 
+
     while not wlan.isconnected():
         wlan.connect(ssid, password)
         utime.sleep(5)
@@ -52,12 +53,16 @@ def ConnectWifi():
         oled.fill(0)
         oled.show()
         oled.text("Error, please",0,0)
-        oled.text("restart the device", 0,10)
-        oled.text("by unplugging", 0,20)
+        oled.text("restart the", 0,10)
+        oled.text("device",0,30)
+        oled.text("by unplugging", 0,40)
         oled.show()
 
 
 def wifiStatus():
+    while settings.BTN_ENC.value() == 0:
+        continue
+
     info = wlan.ifconfig()
     oled.fill(0)
     oled.show()
@@ -67,8 +72,13 @@ def wifiStatus():
     oled.text(info[1],0,30)
     oled.text("Gtw:",0,40)
     oled.text(info[2],0,50)
-    #oled.text("DNS:"+info[3],0,30)
     oled.show()
 
-ConnectWifi()
-wifiStatus()
+    print("IP: "+ info[0])
+    print("Mask: "+info[1])
+    print("Gateway: "+info[2])
+
+    while settings.BTN_ENC.value()==1:
+        continue
+
+
