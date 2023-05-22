@@ -10,15 +10,15 @@ buff = bytearray(255)
 TIMEOUT = False
 FIX_STATUS_GPS = True
 
-latitude = ""
-longitude = ""
-satellites = ""
+latitude = "49.1337"
+longitude = "16.3429"
+satellites = "manually set"
 GPStime = ""
-altitude = ""
+altitude = "280"
 
 
 def RawGPS(gpsModule):
-    global FIX_STATUS_GPS, TIMEOUT, latitude, longitude, satellites, GPStime, GPSaltitude
+    global FIX_STATUS_GPS, TIMEOUT, latitude, longitude, satellites, GPStime, GPSaltitude,altitude
 
     timeout = time.time() + 8
     while True:
@@ -81,7 +81,8 @@ def GPSStatus():
         utime.sleep(3)
 
 def GPS_info():
-    while settings.BTN_ENC.value() == 0:
+
+    while settings.BTN_ENC.value()==0:
         continue
 
     oled.fill(0)

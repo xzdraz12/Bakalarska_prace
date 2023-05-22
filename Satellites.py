@@ -10,16 +10,15 @@ from settings import oled as oled
 licenseKey = settings.licenseKey
 MinElevation = settings.MinElevation
 DaysPrediction = settings.DaysPrediction
-ObserverAltitude = "190"#GPS.GPSaltitude
-latitude = "49.1234"#GPS.latitude
-longitude = "15.009"#GPS.longitude
+# ObserverAltitude = GPS.altitude
+# latitude = GPS.latitude
+# longitude = GPS.longitude
 
 RadioSatellites = settings.RadioSatellites
-WeatherSatellites = settings.WeatherSatellites
+WeatherSatellites = settings.NOAA
 ISS = settings.ISS
 
-def DownloadAPI():
-
+def DownloadAPI(list_name):
 
     #stahuju data, kdy nastane dalsi prelet
     global Pass_start, Pass_end, Satname, Pass_azimuth
@@ -37,19 +36,19 @@ def DownloadAPI():
     print("Downloading satellite data")
 
 
-    # if list_name == "radio":
-    #     SatList = RadioSatellites
-    #
-    # if list_name == "weather":
-    #     SatList = WeatherSatellites
-    #
-    # if list_name == "iss":
-    #     SatList = ISS
+    if list_name == "radio":
+        SatList = RadioSatellites
+
+    if list_name == "noaa":
+        SatList = WeatherSatellites
+
+    if list_name == "iss":
+        SatList = ISS
 
 
 
-    for satID in RadioSatellites:
-        url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
+    for satID in SatList:
+        url = "https://api.n2yo.com/rest/v1/satellite/radiopasses/" + satID + "/" + GPS.latitude + "/" + GPS.longitude + "/" +GPS.altitude + "/" + DaysPrediction + "/" + MinElevation + "/&apiKey=" + licenseKey
         print(url)
 
         while True:
@@ -82,8 +81,13 @@ def DownloadAPI():
     Sorted_Pass_start = sorted(Pass_start.items(), key=lambda x:x[1])
     Pass_start = Sorted_Pass_start
 
-    while settings.BTN_ENC.value()==1:
-        continue
+    oled.fill(0)
+    oled.show()
+    oled.text("Satellite data",0,0)
+    oled.text("downloaded",0,10)
+    oled.show()
+    utime.sleep(2)
+
 
 def DownloadForDesiredPass():
     global CurrentSatId, CurrentSatName
@@ -142,26 +146,11 @@ def DownloadForDesiredPass():
             print("use settings to adjust timezone")
             break
 
-
-
-        # if CurrentTimeInMyTimezone > End:
-        #     oled.fill(0)
-        #     oled.show()
-        #     oled.text("Bad timezone",0,0)
-        #     oled.text("Adjust",0,10)
-        #     oled.text("timezone",0,20)
-        #     oled.show()
-        #
-        #     print("Bad Timezone")
-        #     print("use settings to adjust timezone")
-        #
-        #     break
-
         oled.fill(0)
         oled.show()
         oled.text(CurrentSatName, 0, 0)
-        oled.text("AOS in:", 0, 10)
-        oled.text(Hours+":"+Minutes_OK+":"+Seconds_OK,0,20)
+        oled.text("AOS in "+Hours+":"+Minutes_OK+":"+Seconds_OK, 0, 10)
+        #oled.text(Hours+":"+Minutes_OK+":"+Seconds_OK,0,20)
         oled.show()
         utime.sleep(1)
         oled.fill(0)
@@ -181,7 +170,7 @@ def DownloadForDesiredPass():
 
             print("Slewing into start position")
 
-            Motors.rotate_azimuth_change_speed(StartAZ, "cw", 8)
+            Motors.rotate_azimuth_change_speed(StartAZ, "cw", settings.microstepping)
 
             oled.fill(0)
             oled.show()
@@ -189,11 +178,15 @@ def DownloadForDesiredPass():
             SlewOnlyOnce = False
 
         if TimeToPass <= 5:
+
+            AZ_pass_dif = 0
+            EL_pass_dif = 0
+
             while True:
 
                 while True:
                     try:
-                        url = "https://api.n2yo.com/rest/v1/satellite/positions/" + CurrentSatId + "/" + latitude + "/" + longitude + "/" + ObserverAltitude + "/" + "35" + "/&apiKey=" + licenseKey
+                        url = "https://api.n2yo.com/rest/v1/satellite/positions/" + CurrentSatId + "/" + GPS.latitude + "/" + GPS.longitude + "/" + GPS.altitude + "/" + "35" + "/&apiKey=" + licenseKey
                         GetPositions = urequests.get(url)
                         GetPositions_json = GetPositions.json()
                         break
@@ -203,8 +196,9 @@ def DownloadForDesiredPass():
                         utime.sleep(.5)
                         continue
 
-                global ListOfPositions
+
                 ListOfPositions = []
+
 
                 for JsonValue in GetPositions_json['positions']:
                     timestamp = int(ujson.dumps(JsonValue["timestamp"]))
@@ -218,46 +212,80 @@ def DownloadForDesiredPass():
                 if CurrentTimeInMyTimezone >= ListOfPositions[0][0]:
 
                     for i in range (0, len(ListOfPositions)):
-                        #print(ListOfPositions[i][2])
 
                         oled.fill(0)
                         oled.show()
 
-                        PastAzimuth = str(ListOfPositions[i-1][1])
-                        CurAzimuth = str(ListOfPositions[i][1])
-                        TurnAzimuth = abs(float(PastAzimuth)-float(CurAzimuth))
+                        PastAzimuth = ListOfPositions[i-1][1]
+                        CurAzimuth = ListOfPositions[i][1]
+                        AZ_step_dif = (abs(CurAzimuth-PastAzimuth))%360
 
-                        PastElev = str(ListOfPositions[i-1][2])
-                        CurElev = str(ListOfPositions[i][2])
-                        TurnElev = abs(float(PastElev)-float(CurElev))
+                        PastElev = ListOfPositions[i-1][2]
+                        CurElev = ListOfPositions[i][2]
+                        EL_step_dif = (abs(CurElev-PastElev))%360
 
                         PassDuration = PassDuration-1
 
                         oled.text(CurrentSatName,0,0)
-                        oled.text("Az:"+CurAzimuth,0,10)
-                        oled.text("El:"+CurElev,0,20)
+                        oled.text("Az:"+str(CurAzimuth),0,10)
+                        oled.text("El:"+str(CurElev),0,20)
                         oled.text("LOS in "+str(convert_seconds(PassDuration)[0])+":"+str(convert_seconds(PassDuration)[1])+":"+str(convert_seconds(PassDuration)[2]),0,30)
                         oled.show()
 
-                        print("Az: "+CurAzimuth)
-                        print("El: "+CurElev)
+                        print("Az: "+str(CurAzimuth))
+                        print("El: "+str(CurElev))
+                        print("back az: "+str(AZ_pass_dif))
+                        print("back el: "+str(EL_pass_dif))
 
                         if PastAzimuth > CurAzimuth and i>0:
-                            Motors.rotate_azimuth_slew(TurnAzimuth, "ccw", 8)
-                            
+                            Motors.rotate_azimuth_slew(AZ_step_dif, "ccw", 8)
+                            AZ_pass_dif = AZ_pass_dif - AZ_step_dif
+                            print("ccw Azimuth")
+
                         elif PastAzimuth < CurAzimuth and i > 0:
-                            Motors.rotate_azimuth_slew(TurnAzimuth, "cw", 8)
+                            Motors.rotate_azimuth_slew(AZ_step_dif, "cw", 8)
+                            AZ_pass_dif = AZ_pass_dif + AZ_step_dif
+                            print("cw azimuth")
 
                         if PastElev > CurElev  and i>0:
-                            Motors.rotate_elevation_slew(TurnElev, "cw", 8)
+                            Motors.rotate_elevation_slew(EL_step_dif, "cw", 8)
+                            EL_pass_dif = EL_pass_dif + EL_step_dif
+                            print("cw elev")
 
                         elif PastElev < CurElev and i>0:
-                            Motors.rotate_elevation_slew(TurnElev, "ccw", 8)
-
+                            Motors.rotate_elevation_slew(EL_step_dif, "ccw", 8)
+                            EL_pass_dif = EL_pass_dif - EL_step_dif
+                            print("ccw elev")
                         else:
                             continue
 
                         if ListOfPositions[i][2] < 0:
+
+                            SlewBackAngle_AZ = StartAZ + AZ_pass_dif
+                            SlewBackAngle_EL = 0 + EL_step_dif
+
+                            print("start az was: "+str(StartAZ))
+                            print("slewing back az"+str(SlewBackAngle_AZ))
+                            print("start EL was: 0")
+                            print("slewing back EL: "+str(SlewBackAngle_EL))
+
+                            print("slewing in 5 seconds")
+                            utime.sleep(5)
+
+                            if SlewBackAngle_AZ < 0:
+                                Motors.rotate_azimuth_change_speed(abs(SlewBackAngle_AZ),"cw",8)
+
+                            elif SlewBackAngle_AZ > 0:
+                                Motors.rotate_azimuth_change_speed(abs(SlewBackAngle_AZ), "ccw", 8)
+
+                            if SlewBackAngle_EL < 0:
+                                Motors.rotate_elevation_change_speed(abs(SlewBackAngle_EL),"cw",8)
+
+                            elif SlewBackAngle_EL > 0:
+                                Motors.rotate_elevation_change_speed(abs(SlewBackAngle_EL),"ccw",8)
+
+                            else:
+                                continue
 
                             Pass_start.pop(0)
                             oled.fill(0)
@@ -274,11 +302,27 @@ def DownloadForDesiredPass():
                         utime.sleep(1)
 
 def DownloadForDesiredPass_loop():
-    while True:
-        DownloadForDesiredPass()
+
+    while settings.BTN_ENC.value() == 0:
+        continue
+
+
+    try:
+        while True:
+            DownloadForDesiredPass()
+    except Exception as e:
+        print(e)
+        oled.fill(0)
+        oled.show()
+        oled.text("choose a list", 0, 0)
+        oled.text("of satellites", 0, 10)
+        oled.text("first", 0, 20)
+        oled.text("press the button", 0, 40)
+        oled.text("to continue", 0, 50)
+        oled.show()
 
         while settings.BTN_ENC.value() == 1:
-            break
+            continue
 
 def convert_seconds(seconds):
     hours = seconds // 3600
@@ -288,11 +332,7 @@ def convert_seconds(seconds):
 
     return hours, minutes, seconds
 
-def RunItAll():
-    while settings.BTN_ENC.value() == 0:
-        continue
 
-    DownloadAPI()
-    DownloadForDesiredPass_loop()
-
-
+def calculate_angle_difference(prev, curr):
+    diff = (curr - prev) % 360
+    return diff
